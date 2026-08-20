@@ -1,0 +1,127 @@
+@import url('https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;600;800&family=Work+Sans:wght@400;500;600&display=swap');
+
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@layer base {
+  :root {
+    /* AgriScan Organic & Earthy palette */
+    --background: 60 20% 98%;      /* #FBFBF9 */
+    --foreground: 130 15% 8%;      /* #111812 */
+    --card: 0 0% 100%;
+    --card-foreground: 130 15% 8%;
+    --popover: 0 0% 100%;
+    --popover-foreground: 130 15% 8%;
+    --primary: 145 34% 21%;        /* #244834 forest green */
+    --primary-foreground: 60 20% 98%;
+    --secondary: 85 30% 55%;       /* #8CAE68 moss */
+    --secondary-foreground: 130 15% 8%;
+    --muted: 60 15% 94%;
+    --muted-foreground: 135 8% 39%; /* #5B6B60 */
+    --accent: 15 60% 56%;          /* #D36D4D terracotta */
+    --accent-foreground: 60 20% 98%;
+    --destructive: 15 60% 56%;
+    --destructive-foreground: 60 20% 98%;
+    --border: 60 8% 91%;           /* #E8E9E4 */
+    --input: 60 8% 91%;
+    --ring: 145 34% 21%;
+    --chart-1: 145 34% 21%;
+    --chart-2: 85 30% 55%;
+    --chart-3: 15 60% 56%;
+    --chart-4: 40 55% 65%;
+    --chart-5: 200 25% 40%;
+    --radius: 0.85rem;
+  }
+}
+
+@layer base {
+  * { @apply border-border; }
+  html, body, #root { height: 100%; }
+  body {
+    @apply bg-background text-foreground;
+    font-family: 'Work Sans', system-ui, sans-serif;
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+    background-image:
+      radial-gradient(1200px 600px at 100% -10%, rgba(140,174,104,0.10), transparent 60%),
+      radial-gradient(900px 500px at -10% 110%, rgba(211,109,77,0.06), transparent 60%);
+  }
+  h1, h2, h3, h4, h5, h6 { font-family: 'Outfit', system-ui, sans-serif; letter-spacing: -0.01em; }
+}
+
+/* Custom utilities */
+@layer utilities {
+  .font-heading { font-family: 'Outfit', system-ui, sans-serif; }
+  .font-body { font-family: 'Work Sans', system-ui, sans-serif; }
+  .label-eyebrow {
+    font-family: 'Work Sans', system-ui, sans-serif;
+    text-transform: uppercase;
+    letter-spacing: 0.2em;
+    font-size: 0.72rem;
+    font-weight: 600;
+  }
+  .glass-header {
+    background-color: rgba(251, 251, 249, 0.82);
+    backdrop-filter: blur(18px) saturate(140%);
+    -webkit-backdrop-filter: blur(18px) saturate(140%);
+    border-bottom: 1px solid rgb(232, 233, 228);
+  }
+  .grain::before {
+    content: "";
+    position: absolute; inset: 0;
+    pointer-events: none;
+    opacity: 0.06;
+    background-image: url("data:image/svg+xml;utf8,<svg viewBox='0 0 200 200' xmlns='http://www.w3.org/2000/svg'><filter id='n'><feTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='2' stitchTiles='stitch'/></filter><rect width='100%' height='100%' filter='url(%23n)'/></svg>");
+    background-size: 200px 200px;
+  }
+  .card-soft {
+    background: #FFFFFF;
+    border: 1px solid rgb(232, 233, 228);
+    border-radius: 1rem;
+    box-shadow: 0 8px 30px rgba(17, 24, 18, 0.04);
+  }
+  .btn-primary {
+    background-color: hsl(var(--primary));
+    color: hsl(var(--primary-foreground));
+    border-radius: 9999px;
+    padding: 0.7rem 1.4rem;
+    font-weight: 600;
+    transition: transform 180ms ease, box-shadow 180ms ease, background-color 180ms ease;
+  }
+  .btn-primary:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 12px 30px rgba(36, 72, 52, 0.20);
+    background-color: #1c3a29;
+  }
+  .btn-outline {
+    background-color: #FFFFFF;
+    color: hsl(var(--primary));
+    border: 1px solid rgb(232, 233, 228);
+    border-radius: 9999px;
+    padding: 0.7rem 1.4rem;
+    font-weight: 600;
+    transition: transform 180ms ease, box-shadow 180ms ease, background-color 180ms ease;
+  }
+  .btn-outline:hover {
+    transform: translateY(-2px);
+    background-color: #F4F7F0;
+    box-shadow: 0 12px 30px rgba(17, 24, 18, 0.06);
+  }
+  .chip {
+    display: inline-flex; align-items: center; gap: 0.35rem;
+    padding: 0.25rem 0.7rem;
+    border-radius: 9999px;
+    font-size: 0.75rem; font-weight: 600;
+    border: 1px solid rgb(232, 233, 228);
+    background: #FFFFFF;
+  }
+}
+
+/* Selection */
+::selection { background-color: rgba(140, 174, 104, 0.35); color: #111812; }
+
+/* Scrollbar */
+::-webkit-scrollbar { width: 10px; height: 10px; }
+::-webkit-scrollbar-thumb { background: #d9dcd3; border-radius: 6px; }
+::-webkit-scrollbar-thumb:hover { background: #c1c7b8; }

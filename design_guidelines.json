@@ -1,0 +1,116 @@
+{
+  "theme": "Organic & Earthy (Modern Agriculture)",
+  "description": "A creative agriculture-themed aesthetic avoiding 'cliché leaf + green gradient' AI-slop. Uses warm bone-whites, deep forest greens, and earthy terracottas. Mobile-first design focusing on clarity for non-tech-savvy farmers, with generous whitespace and clear 3-step diagnosis flows.",
+  "typography": {
+    "headings": "Outfit",
+    "body": "Work Sans",
+    "import_url": "https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;600;800&family=Work+Sans:wght@400;500;600&display=swap",
+    "rules": [
+      "Avoid Inter, Roboto, Open Sans, Lato for Headings.",
+      "Headings must use tight letter spacing: tracking-tight.",
+      "Overlines / Labels MUST be Uppercase + Tiny + Wide Spacing (tracking-[0.2em]).",
+      "Line Height: Tight (leading-none) for headers, Loose (leading-relaxed) for body.",
+      "H1 MAXIMUM text-4xl sm:text-5xl lg:text-6xl. Do not use text-7xl+."
+    ]
+  },
+  "colors": {
+    "primary": "#244834",
+    "secondary": "#8CAE68",
+    "accent": "#D36D4D",
+    "background": "#FBFBF9",
+    "surface": "#FFFFFF",
+    "text": {
+      "main": "#111812",
+      "muted": "#5B6B60"
+    },
+    "borders": "#E8E9E4",
+    "rules": [
+      "Never use pure #000000 or #808080. Always tint neutral greys with a tiny bit of green/warmth.",
+      "Use Terracotta (#D36D4D) for disease severity/alerts, never standard red.",
+      "Focus states must have HIGHER contrast. ALWAYS explicitly set text color on hover.",
+      "CRITICAL: ONLY use primary / brand color for CTAs like button, form, etc. LIMIT the use of PRIMARY color."
+    ]
+  },
+  "visual_enhancers": {
+    "surfaces": [
+      "Headers: Use Crystal Glass (backdrop-blur-xl bg-white/70) if content scrolls under it. 1px delicate inner stroke.",
+      "Cards: Flat solid background, 1px subtle border, soft ambient shadow (shadow-sm or custom shadow-[0_8px_30px_rgb(0,0,0,0.04)]).",
+      "CRITICAL: DO NOT use complete `transparent` background in header, overlays, any surface that has content under it."
+    ],
+    "shapes": "Subtle roundness, rounded-xl to rounded-2xl. Not excessively pill-shaped except for primary CTAs."
+  },
+  "layouts": {
+    "grid_strategy": "The 'Bento' Grid Protocol",
+    "dashboard": "Mode B (High Density Grid): grid-cols-1 md:grid-cols-3 lg:grid-cols-4 with gap-6. Primary diagnosis/upload area spans larger.",
+    "spacing": "Generous Spacing Philosophy. Use p-6, p-8, p-12. Containers with borders MUST have internal padding (e.g., p-6 or p-8).",
+    "mobile_first": "Always start with grid-cols-1. Images MUST NOT exceed 80vh on mobile devices."
+  },
+  "components": {
+    "general": "Use Shadcn components for interactive logic (Forms, Modals, Inputs) but HEAVILY CUSTOMIZE them via Tailwind to match the organic brand. Use .js extension (JSX) instead of .tsx.",
+    "upload_zone": "Massive drag-and-drop area. border-2 border-dashed border-[#8CAE68] bg-[#FBFBF9] p-12 text-center rounded-2xl. Use Lucide icons.",
+    "buttons": "Pill-shaped or rounded-xl. Hover states must translate-y-[-2px] with increased shadow.",
+    "charts": "Use Recharts (Chart.js is acceptable but Recharts is preferred in React). Use theme colors (Primary, Secondary, Accent) instead of default chart colors. Remove grid lines for a cleaner look."
+  },
+  "motion": {
+    "rules": [
+      "Hover states on all interactive elements.",
+      "Smooth entrance animations for diagnosis results and list items.",
+      "Exclude transforms from universal transitions (breaks animations).",
+      "MUST respect prefers-reduced-motion."
+    ]
+  },
+  "accessibility": {
+    "contrast": "Minimum 4.5:1 contrast ratio for normal text. Check Terracotta and White.",
+    "testing": "All interactive and key informational elements MUST include a `data-testid` attribute (kebab-case, role-based).",
+    "forms": "Clear error states. Do not rely solely on color to indicate severity (use icons)."
+  },
+  "media": {
+    "libraries": {
+      "icons": "lucide-react (default choice, already installed)",
+      "charts": "recharts"
+    },
+    "images": [
+      {
+        "url": "https://images.unsplash.com/photo-1556490496-45afc7b8b8e5?crop=entropy&cs=srgb&fm=jpg&ixid=M3w4NjA2MjJ8MHwxfHNlYXJjaHwxfHxhZXJpYWwlMjBmYXJtbGFuZCUyMHBhdHRlcm58ZW58MHx8fHwxNzg2OTY0ODkzfDA&ixlib=rb-4.1.0&q=85",
+        "description": "Aerial farmland pattern. Best for Hero section background or abstract decorative headers.",
+        "category": "hero_background"
+      },
+      {
+        "url": "https://images.unsplash.com/photo-1590682680695-43b964a3ae17?crop=entropy&cs=srgb&fm=jpg&ixid=M3w3NDk1Nzd8MHwxfHNlYXJjaHwyfHxmYXJtZXIlMjBoYW5kcyUyMHNvaWx8ZW58MHx8fHwxNzg2OTY0ODkxfDA&ixlib=rb-4.1.0&q=85",
+        "description": "Farmer hands with small plant/soil. Good for 'Get Started' or 'About' sections.",
+        "category": "content_illustration"
+      },
+      {
+        "url": "https://images.unsplash.com/photo-1519370855830-34c503c41d0f?crop=entropy&cs=srgb&fm=jpg&ixid=M3w3NTY2Nzh8MHwxfHNlYXJjaHwxfHxwbGFudCUyMGxlYWYlMjBtYWNybyUyMHRleHR1cmV8ZW58MHx8fHwxNzg2OTY0ODkzfDA&ixlib=rb-4.1.0&q=85",
+        "description": "Macro shot of a green leaf. Perfect for the 'Scan History' or 'Upload Placeholder' visuals.",
+        "category": "diagnosis_placeholder"
+      },
+      {
+        "url": "https://images.pexels.com/photos/37321079/pexels-photo-37321079.jpeg?auto=compress&cs=tinysrgb&dpr=2&h=650&w=940",
+        "description": "Fresh organic vegetables market. Use for the 'Market Prices' or 'Sell Produce' section headers.",
+        "category": "market_section"
+      }
+    ],
+    "rules": "NEVER use placeholder URLs. Use the provided images."
+  },
+  "UNIVERSAL GUIDELINES FOR MAIN AGENT": [
+    "You tend to converge toward generic, 'on distribution' outputs. In frontend design, this creates what users call the 'AI slop' aesthetic. Avoid this: make creative, distinctive frontends that surprise and delight.",
+    "Dark colors look good when used independently without gradients. DO NOT use dark colors as gradients.",
+    "Don't make generic centered layouts, simplistic gradients, and uniform styling.",
+    "Create depth through layered design elements with z-index hierarchy.",
+    "Use glass-morphism effects with backdrop filters (12-24px blur) where appropriate, BUT NEVER on dropdowns, select menus, or any surface that requires crisp readability underneath.",
+    "You MUST NOT apply universal transition. Eg: `transition: all`. This results in breaking transforms. Always add transitions for specific interactive elements like button, input excluding transforms.",
+    "You MUST NOT center align the app container, ie do not add `.App { text-align: center; }` in the css file. This disrupts the human natural reading flow of text.",
+    "Always use modern button styles like pill-shaped, or sharp button with interaction animations & color relevant to the app style.",
+    "NEVER: use AI assistant Emoji characters like 🤖🧠💭💡🔮🎯 etc for icons.",
+    "Every interaction needs micro-animations - hover states, transitions, parallax effects, and entrance animations. Static = dead.",
+    "Use 2-3x more spacing than feels comfortable. Cramped designs look cheap.",
+    "Subtle grain textures, noise overlays, custom cursors, selection states, and loading animations: separates good from extraordinary.",
+    "Main agent relies on these image URLs. Missing categories (especially sponsor logos) = main agent will use placeholder text which is FORBIDDEN.",
+    "Prioritize using pre-existing components from src/components/ui when applicable.",
+    "Create new components that match the style and conventions of existing components when needed.",
+    "Use `sonner` for toasts. Sonner component are located in `/app/src/components/ui/sonner.js` (note the .js extension).",
+    "All interactive and key informational elements MUST include a `data-testid` attribute to facilitate robust automated testing.",
+    "Ensure you write .js or .jsx files, not .tsx files."
+  ]
+}

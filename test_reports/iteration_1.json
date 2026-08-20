@@ -1,0 +1,38 @@
+{
+  "summary": "End-to-end backend and frontend testing of AgriScan completed successfully. 15/15 backend pytest cases pass covering health, JWT auth, language persistence, Claude-Sonnet diagnosis + scans CRUD, calculator, market crops/prices/trend/listings, and advisor meta/districts/query in both English and Hindi (Devanagari verified). Frontend Playwright: landing loads with hero, Advisor page works end-to-end (searchable crop combobox 'tom' -> Tomato, native state select, dependent district select with 16 options for Maharashtra, quick-ask chip fills question, submit shows loading indicator, result renders with soil/fertilizers/pesticides/diseases/safety cards). Dashboard upload zone visible with file input. EN<->हिं language toggle flips navbar 'AgriScan' -> 'एग्रीस्कैन' and dashboard content contains 150+ Devanagari chars.",
+  "backend_issues": {
+    "critical": [],
+    "minor": [
+      {"endpoint": "N/A", "issue": "Hydration warning in console: <span> injected inside <option> in Advisor state/district <select> due to translated placeholder wrapper (e.g. — State —). Non-blocking but produces React hydration mismatch warnings."}
+    ]
+  },
+  "frontend_issues": {
+    "ui_bugs": [],
+    "integration_issues": [],
+    "design_issues": []
+  },
+  "test_report_links": [
+    "/app/backend/tests/test_agriscan_api.py",
+    "/app/test_reports/pytest/pytest_results.xml"
+  ],
+  "action_items": [
+    "(Optional) Suppress the React hydration warning by rendering placeholder text as a plain string node inside <option>, not wrapped in a <span> from the translation runtime."
+  ],
+  "critical_code_review_comments": [
+    "server.py: startup DB index creation calls create_index('email', unique=True) after users may already exist with duplicates; if seeded users exist with duplicate emails this would fail (currently just logs a warning, acceptable).",
+    "diagnose endpoint stores objects best-effort but even if storage init failed at boot it still tries put_object each request — consider retrying init_storage() lazily.",
+    "AdvisorInput is declared inline in server.py; move to models.py for consistency.",
+    "Advisor.jsx uses translation runtime that injects <span> inside <option>, causing hydration warnings — small fix but user-visible in devtools.",
+    "No rate limiting on /api/advisor/query and /api/diagnose which call paid LLM — consider auth-only or rate limit."
+  ],
+  "updated_files": [
+    "/app/backend/tests/test_agriscan_api.py (new)"
+  ],
+  "success_rate": {"backend": "100% (15/15)", "frontend": "100% (all flows passed)"},
+  "test_credentials": "None seeded. Tests self-register a random user with @example.com email each run (agriscan.test TLD rejected by email-validator).",
+  "seed_data_creation": "Each test run creates one TEST user + one market listing + one diagnosis scan (scan is deleted at end of scans test).",
+  "retest_needed": false,
+  "main_agent_can_self_test": true,
+  "context_for_next_testing_agent": "Backend test file at /app/backend/tests/test_agriscan_api.py runs green in ~90s (advisor LLM calls dominate). Use pytest -n auto or default (xdist 2 workers via pytest.ini). Use email domain @example.com — email-validator blocks .test TLD. CalculatorInput requires crop_type/area/area_unit/severity/growth_stage. ProduceListingInput requires asking_price_per_kg (not price_per_kg). Advisor state/district are native <select> — use page.select_option, not click.",
+  "rca of the issue": "N/A — no blocking issues found."
+}
