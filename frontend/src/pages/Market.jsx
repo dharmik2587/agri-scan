@@ -20,6 +20,8 @@ export default function MarketPage() {
   const [days, setDays] = useState(30);
   const [prices, setPrices] = useState([]);
   const [trend, setTrend] = useState([]);
+  const [pricesSource, setPricesSource] = useState("mock");
+  const [trendSource, setTrendSource] = useState("mock");
   const [listings, setListings] = useState([]);
   const [listingForm, setListingForm] = useState({ crop: "Tomato", quantity_kg: 100, asking_price_per_kg: 20, region: "Maharashtra", contact: "", notes: "" });
 
@@ -35,14 +37,14 @@ export default function MarketPage() {
     const q = new URLSearchParams();
     if (crop) q.set("crop", crop);
     if (region) q.set("region", region);
-    client.get(`/market/prices?${q.toString()}`).then((r) => setPrices(r.data.prices));
+    client.get(`/market/prices?${q.toString()}`).then((r) => { setPrices(r.data.prices); setPricesSource(r.data.source || "mock"); });
   }, [crop, region]);
 
   useEffect(() => {
     if (!crop) return;
     const q = new URLSearchParams({ crop, days: String(days) });
     if (region) q.set("region", region);
-    client.get(`/market/trend?${q.toString()}`).then((r) => setTrend(r.data.trend));
+    client.get(`/market/trend?${q.toString()}`).then((r) => { setTrend(r.data.trend); setTrendSource(r.data.source || "mock"); });
   }, [crop, region, days]);
 
   const loadListings = () => {
@@ -78,7 +80,9 @@ export default function MarketPage() {
         <img src={MARKET_IMG} alt="" className="w-full h-40 sm:h-52 object-cover" />
         <div className="absolute inset-0 bg-gradient-to-r from-primary/85 via-primary/60 to-transparent" />
         <div className="absolute inset-0 flex flex-col justify-center px-6 sm:px-10 text-primary-foreground">
-          <span className="label-eyebrow text-primary-foreground/80">Mandi live</span>
+          <span className="label-eyebrow text-primary-foreground/80">
+            {pricesSource === "agmarknet" ? "Agmarknet · Live" : "Demo data"}
+          </span>
           <h1 className="font-heading text-3xl sm:text-4xl font-semibold tracking-tight mt-2">{t.marketPage.title}</h1>
           <p className="text-sm mt-1 max-w-xl">{t.marketPage.subtitle}</p>
         </div>
@@ -143,7 +147,12 @@ export default function MarketPage() {
         </div>
 
         <div data-testid={MARKET.priceTable} className="card-soft p-6">
-          <h3 className="font-heading text-lg font-semibold flex items-center gap-2"><TrendingUp className="w-4 h-4 text-primary" /> Today's prices</h3>
+          <div className="flex items-center justify-between">
+            <h3 className="font-heading text-lg font-semibold flex items-center gap-2"><TrendingUp className="w-4 h-4 text-primary" /> Today's prices</h3>
+            <span data-testid="market-source-badge" className={`chip text-[10px] ${pricesSource === "agmarknet" ? "bg-secondary/15 text-secondary border-secondary/40" : "bg-muted text-muted-foreground"}`}>
+              {pricesSource === "agmarknet" ? "LIVE · Agmarknet" : "DEMO"}
+            </span>
+          </div>
           <div className="mt-4 space-y-2 max-h-72 overflow-y-auto pr-1">
             {prices.map((p, i) => (
               <div key={i} className="flex items-center justify-between p-3 rounded-xl bg-muted/50 border border-border">

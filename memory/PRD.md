@@ -27,11 +27,13 @@ Build a responsive web app called "AgriScan" for plant/crop health diagnosis and
 - **Diagnosis**: /diagnose (Claude Sonnet 5 vision) + image storage via Emergent object storage
 - **Scans CRUD**: list, get, delete (auth required)
 - **Calculator**: /calculator + /calculator/crops
-- **Market**: /market/crops, /prices, /trend, /listings (GET/POST/DELETE)
-- **Crop Advisor** (NEW): searchable crop combobox (~100 crops), state (36 states/UTs) + district selectors, optional question + photo, returns locality-specific soil/fertilizers/pesticides/diseases/pests/safety in EN or HI via Claude Sonnet 5
-- **Frontend pages**: Landing, Login (email + Google), Dashboard (upload + recent scans), Diagnosis Report, Calculator (charts), Market (trend + listings), History, Profile, Advisor, Auth callback
+- **Market**: /market/crops, /prices, /trend, /listings (GET/POST/DELETE) — now Agmarknet-first with graceful mock fallback + `source` field
+- **Crop Advisor**: searchable crop combobox (~100 crops), state (36 states/UTs) + district selectors, optional question + photo, returns locality-specific soil/fertilizers/pesticides/diseases/pests/safety in EN or HI via Claude Sonnet 5
+- **Voice Advisor** (NEW): microphone button records audio → Whisper STT → fills question in the selected language (Hindi supported natively); "Read aloud" button on advisor results uses browser SpeechSynthesis (Hindi + Indian English voices)
+- **Live Mandi Feed** (NEW): /market/prices and /market/trend try Agmarknet (data.gov.in resource `9ef84268-d588-465a-a308-a864a43d0070`) and cache results in MongoDB (`mandi_prices`) to progressively build real trend history; source flagged on UI
+- **Frontend pages**: Landing, Login (email + Google), Dashboard, Diagnosis Report, Calculator (charts), Market (trend + listings + LIVE/DEMO badge), History, Profile, Advisor, Auth callback
 - **UX**: EN/हिं toggle in header, animated hero, grain textures, staggered card reveals, mobile-responsive
-- **Testing**: 15/15 backend pytest pass; frontend playwright flows pass (test report iteration_1.json)
+- **Testing**: iteration_1 15/15 + iteration_2 14/14 delta tests pass
 
 ## Prioritized Backlog
 

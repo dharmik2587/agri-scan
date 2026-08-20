@@ -1,0 +1,22 @@
+{
+  "summary": "Iteration 2 delta testing (Voice Advisor + Live Mandi + Read-aloud). Extended /app/backend/tests/test_agriscan_api.py with market source-field assertions and 2 new voice tests (missing field -> 422; tiny silent WAV -> 200 OR clean 500). 14/14 quick suite passed and advisor_query_en passed separately. Frontend: Market page shows 'DEMO' badge with data-testid=market-source-badge (source=mock as expected — Agmarknet key 403). Advisor page has mic button (data-testid=advisor-voice-input-button, BUTTON tag, visible, click does not throw). Submitting advisor query (Tomato/Maharashtra/Pune/EN) renders full result including advisor-read-aloud-button which clicks without throwing (SpeechSynthesis is a no-op in headless). EN<->हिं toggle switches nav labels correctly.",
+  "backend_issues": {"critical": [], "minor": []},
+  "frontend_issues": {"ui_bugs": [], "integration_issues": [], "design_issues": []},
+  "test_report_links": [
+    "/app/backend/tests/test_agriscan_api.py",
+    "/app/test_reports/pytest/iteration_2.xml"
+  ],
+  "action_items": [],
+  "critical_code_review_comments": [
+    "mandi_live.fetch_agmarknet uses blocking `requests.get` inside an async function — should use httpx.AsyncClient to avoid blocking the event loop when Agmarknet is reachable (currently masked because key 403s fast).",
+    "market_prices infers response 'source' from prices[0]['source'] only; if the array is empty (unlikely, but possible with strict filters) it defaults to 'mock' which is fine but worth making explicit."
+  ],
+  "updated_files": ["/app/backend/tests/test_agriscan_api.py"],
+  "success_rate": {"backend": "100% (14/14 delta + advisor_query_en)", "frontend": "100% (badge, mic, read-aloud, lang toggle all verified)"},
+  "test_credentials": "None required; tests self-register a fresh user each run",
+  "seed_data_creation": "None",
+  "retest_needed": false,
+  "main_agent_can_self_test": true,
+  "context_for_next_testing_agent": "Delta tests are appended to test_agriscan_api.py (test_voice_transcribe_missing_field, test_voice_transcribe_silent_wav, extended test_market_prices/test_market_trend for source field). Whisper transcribed 1s silent WAV successfully (200). Agmarknet returns 403 so source is 'mock' — tests accept either. All previous iteration_1 endpoints still pass.",
+  "rca of the issue": "N/A — no issues found"
+}

@@ -35,6 +35,8 @@ from storage import init_storage, put_object, APP_NAME
 from diagnosis import diagnose_image
 from calculator import calculate as calc_run, list_crops as calc_crops
 from market_data import current_prices, price_trend, list_crops, list_regions
+from mandi_live import current_prices_live, price_trend_live
+from voice import transcribe_audio
 from india_data import list_states, districts_for, all_crops
 from advisor import advise as advisor_run
 
@@ -226,12 +228,20 @@ async def market_crops():
 
 @api.get("/market/prices")
 async def market_prices(crop: Optional[str] = None, region: Optional[str] = None):
-    return {"prices": current_prices(crop, region)}
+    prices = await current_prices_live(db, crop, region)
+    source = prices[0]["source"] if prices else "mock"
+    return {"prices": prices, "source": source}
 
 
 @api.get("/market/trend")
 async def market_trend(crop: str = Query(...), region: Optional[str] = None, days: int = 30):
-    return {"crop": crop, "region": region, "days": days, "trend": price_trend(crop, region, days)}
+    # Warm the cache for this crop/region so trend history builds up over time
+    try:
+        await current_prices_live(db, crop, region)
+    except Exception:
+        pass
+    trend, source = await price_trend_live(db, crop, region, days)
+    return {"crop": crop, "region": region, "days": days, "trend": trend, "source": source}
 
 
 @api.get("/market/listings")
@@ -266,6 +276,28 @@ async def delete_listing(listing_id: str, authorization: Optional[str] = Header(
     if res.deleted_count == 0:
         raise HTTPException(status_code=404, detail="Listing not found")
     return {"ok": True}
+
+
+# ---------- Voice ----------
+from fastapi import UploadFile, File, Form
+
+
+@api.post("/voice/transcribe")
+async def voice_transcribe(
+    audio: UploadFile = File(...),
+    language: str = Form("hi"),
+):
+    data = await audio.read()
+    if len(data) > 25 * 1024 * 1024:
+        raise HTTPException(status_code=413, detail="Audio file exceeds 25MB limit")
+    if not data:
+        raise HTTPException(status_code=400, detail="Empty audio")
+    try:
+        text = await transcribe_audio(data, audio.filename or "audio.webm", language=language)
+    except Exception as e:
+        logger.error("transcribe failed: %s", e)
+        raise HTTPException(status_code=500, detail="Transcription failed")
+    return {"text": text, "language": language}
 
 
 # ---------- Advisor ----------

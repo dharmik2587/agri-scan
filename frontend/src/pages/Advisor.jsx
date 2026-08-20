@@ -2,11 +2,13 @@ import React, { useEffect, useMemo, useRef, useState } from "react";
 import { toast } from "sonner";
 import {
   Sparkles, Search, MapPin, Camera, X, Leaf, TestTube2, Sprout, Bug, Beaker,
-  ShieldAlert, Landmark, Info, ChevronDown,
+  ShieldAlert, Landmark, Info, ChevronDown, Volume2, VolumeX,
 } from "lucide-react";
 import client from "@/lib/api";
 import { useLang } from "@/context/LangContext";
 import { ADVISOR } from "@/constants/testIds";
+import VoiceInput from "@/components/VoiceInput";
+import { speak, stopSpeaking, isTTSAvailable } from "@/lib/tts";
 
 const MAX_BYTES = 10 * 1024 * 1024;
 
@@ -141,8 +143,36 @@ export default function Advisor() {
   const [photo, setPhoto] = useState(null);
   const [loading, setLoading] = useState(false);
   const [result, setResult] = useState(null);
+  const [speaking, setSpeaking] = useState(false);
   const fileRef = useRef(null);
   const resultRef = useRef(null);
+
+  useEffect(() => () => stopSpeaking(), []);
+
+  const buildAdvisoryText = (r) => {
+    if (!r) return "";
+    const parts = [];
+    parts.push(`${r.crop}, ${r.district}, ${r.state}.`);
+    if (r.summary) parts.push(r.summary);
+    if (r.soil?.type) parts.push(`${t.advisorPage.soil}: ${r.soil.type}. pH ${r.soil.ph_range || "—"}.`);
+    if (r.soil?.recommendations?.length) parts.push(`${t.advisorPage.soilRecs}: ${r.soil.recommendations.join(". ")}.`);
+    if (r.fertilizers?.length) parts.push(`${t.advisorPage.fertilizers}: ${r.fertilizers.slice(0, 3).map((f) => `${f.name} ${f.npk_ratio || ""}`).join(", ")}.`);
+    if (r.pesticides?.length) parts.push(`${t.advisorPage.pesticides}: ${r.pesticides.slice(0, 3).map((p) => p.name).join(", ")}.`);
+    if (r.diseases?.length) parts.push(`${t.advisorPage.diseases}: ${r.diseases.slice(0, 3).map((d) => d.name).join(", ")}.`);
+    if (r.local_notes) parts.push(`${t.advisorPage.localNotes}: ${r.local_notes}`);
+    return parts.join(" ");
+  };
+
+  const onReadAloud = () => {
+    if (speaking) { stopSpeaking(); setSpeaking(false); return; }
+    const ok = speak(buildAdvisoryText(result), lang);
+    if (!ok) return;
+    setSpeaking(true);
+    // Best-effort clear speaking state when synthesis ends
+    const check = setInterval(() => {
+      if (!window.speechSynthesis?.speaking) { setSpeaking(false); clearInterval(check); }
+    }, 500);
+  };
 
   useEffect(() => {
     client.get("/advisor/meta").then((r) => setMeta(r.data)).catch(() => {});
@@ -255,15 +285,26 @@ export default function Advisor() {
 
         <div className="lg:col-span-8">
           <label className="label-eyebrow text-muted-foreground">{t.advisorPage.question}</label>
-          <textarea
-            data-testid={ADVISOR.questionInput}
-            rows={3}
-            value={form.question}
-            onChange={setField("question")}
-            placeholder={t.advisorPage.questionPlaceholder}
-            className="mt-2 w-full border border-border rounded-xl px-3 py-2.5 bg-white text-sm resize-none"
-          />
-          <div className="mt-2 flex flex-wrap gap-2">
+          <div className="mt-2 relative">
+            <textarea
+              data-testid={ADVISOR.questionInput}
+              rows={3}
+              value={form.question}
+              onChange={setField("question")}
+              placeholder={t.advisorPage.questionPlaceholder}
+              className="w-full border border-border rounded-xl px-3 py-2.5 pr-14 bg-white text-sm resize-none"
+            />
+            <div className="absolute top-2 right-2">
+              <VoiceInput
+                language={lang}
+                testid={ADVISOR.voiceInput}
+                size="sm"
+                onTranscript={(text) => setForm((f) => ({ ...f, question: (f.question ? f.question + " " : "") + text }))}
+              />
+            </div>
+          </div>
+          <div className="mt-2 flex flex-wrap gap-2 items-center">
+            <span className="text-[11px] text-muted-foreground label-eyebrow mr-1">{t.advisorPage.quickAsk}:</span>
             {quickAsks.map((q) => (
               <button
                 key={q}
@@ -345,7 +386,20 @@ export default function Advisor() {
                   {result.district}, {result.state}
                 </h2>
               </div>
-              <span className="chip">{result.language?.toUpperCase() || "EN"}</span>
+              <div className="flex items-center gap-2">
+                <span className="chip">{result.language?.toUpperCase() || "EN"}</span>
+                {isTTSAvailable() && (
+                  <button
+                    type="button"
+                    data-testid={speaking ? ADVISOR.stopReading : ADVISOR.readAloud}
+                    onClick={onReadAloud}
+                    className={`chip inline-flex items-center gap-1 hover:bg-muted ${speaking ? "bg-accent/10 text-accent border-accent/40" : ""}`}
+                  >
+                    {speaking ? <VolumeX className="w-3.5 h-3.5" /> : <Volume2 className="w-3.5 h-3.5" />}
+                    {speaking ? t.advisorPage.stopReading : t.advisorPage.readAloud}
+                  </button>
+                )}
+              </div>
             </div>
             <p data-testid={ADVISOR.summary} className="mt-4 text-sm sm:text-base leading-relaxed">{result.summary}</p>
           </div>

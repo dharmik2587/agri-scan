@@ -117,4 +117,7 @@ export const ADVISOR = {
   safetyCard: "advisor-safety-card",
   localNotesCard: "advisor-local-notes-card",
   quickAskButton: "advisor-quick-ask-button",
+  voiceInput: "advisor-voice-input-button",
+  readAloud: "advisor-read-aloud-button",
+  stopReading: "advisor-stop-reading-button",
 };

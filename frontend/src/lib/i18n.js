@@ -63,6 +63,9 @@ const dict = {
       remedy: "Remedy",
       noResults: "Ask a question or select a crop to get started.",
       quickAsk: "Popular questions",
+      speakInstead: "Speak instead",
+      readAloud: "Read aloud",
+      stopReading: "Stop",
     },
     upload: {
       title: "Upload a plant or leaf photo",
@@ -200,6 +203,9 @@ const dict = {
       remedy: "उपाय",
       noResults: "शुरू करने के लिए फ़सल चुनें या प्रश्न पूछें।",
       quickAsk: "लोकप्रिय प्रश्न",
+      speakInstead: "बोलकर पूछें",
+      readAloud: "सुनें",
+      stopReading: "रोकें",
     },
     upload: {
       title: "पौधा या पत्ती की फ़ोटो अपलोड करें",

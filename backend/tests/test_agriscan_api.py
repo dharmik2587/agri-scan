@@ -121,7 +121,14 @@ def test_market_crops(session):
 def test_market_prices(session):
     r = session.get(f"{API}/market/prices", params={"crop": "Tomato", "region": "Maharashtra"})
     assert r.status_code == 200
-    assert "prices" in r.json()
+    j = r.json()
+    assert "prices" in j
+    assert "source" in j
+    assert j["source"] in ("mock", "agmarknet")
+    if j["prices"]:
+        p = j["prices"][0]
+        for key in ["crop", "region", "market", "price_min", "price_max", "price_modal", "unit", "date"]:
+            assert key in p, f"missing {key} in price record"
 
 
 def test_market_trend(session):
@@ -129,6 +136,45 @@ def test_market_trend(session):
     assert r.status_code == 200
     j = r.json()
     assert len(j["trend"]) == 7
+    assert "source" in j
+    assert j["source"] in ("mock", "agmarknet")
+
+
+# ------------- Voice transcribe -------------
+def _tiny_silent_wav_bytes(seconds=1, rate=8000):
+    import wave, struct
+    buf = io.BytesIO()
+    with wave.open(buf, "wb") as w:
+        w.setnchannels(1)
+        w.setsampwidth(2)
+        w.setframerate(rate)
+        w.writeframes(b"\x00\x00" * (rate * seconds))
+    return buf.getvalue()
+
+
+def test_voice_transcribe_missing_field(session):
+    # No 'audio' field -> FastAPI returns 422
+    r = requests.post(f"{API}/voice/transcribe", data={"language": "en"})
+    assert r.status_code == 422, f"expected 422, got {r.status_code}: {r.text[:200]}"
+
+
+def test_voice_transcribe_silent_wav(session):
+    wav = _tiny_silent_wav_bytes()
+    files = {"audio": ("silence.wav", wav, "audio/wav")}
+    data = {"language": "en"}
+    r = requests.post(f"{API}/voice/transcribe", files=files, data=data, timeout=60)
+    # Either 200 with text, or 500 with clean detail. Must not be 5xx traceback.
+    assert r.status_code in (200, 500), f"unexpected status {r.status_code}: {r.text[:200]}"
+    try:
+        j = r.json()
+    except Exception:
+        pytest.fail(f"non-json response: {r.text[:200]}")
+    if r.status_code == 200:
+        assert "text" in j
+    else:
+        assert "detail" in j
+        # Ensure no python traceback leaked
+        assert "Traceback" not in r.text
 
 
 def test_market_listing_crud(session, auth_headers):
