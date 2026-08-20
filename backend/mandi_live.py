@@ -5,10 +5,14 @@ Fields (as returned by data.gov.in): state, district, market, commodity, variety
 grade, arrival_date (dd/mm/yyyy), min_price, max_price, modal_price.
 
 We cache fetched records in MongoDB per (crop, region, date) so a trend chart can
-be built from real historic data as it accumulates.
+be built from real historic data as it accumulates. If the endpoint is unreachable
+or the API key is unauthorised, we short-circuit for a while so the async event
+loop stays responsive and requests fall back to mock quickly.
 """
 import os
+import asyncio
 import logging
+import time
 import requests
 from datetime import datetime, timezone, timedelta
 from typing import Optional
@@ -20,6 +24,20 @@ logger = logging.getLogger(__name__)
 AGMARKNET_URL = "https://api.data.gov.in/resource/9ef84268-d588-465a-a308-a864a43d0070"
 AGMARKNET_KEY = os.environ.get("AGMARKNET_API_KEY", "").strip()
 CACHE_TTL_MIN = 60  # minutes
+
+# Circuit breaker: if Agmarknet fails, don't hammer it — pause outbound calls
+# for this many seconds so the app stays fast on mock fallback.
+_BREAKER_UNTIL = 0.0
+_BREAKER_COOLDOWN_SEC = 600  # 10 minutes
+
+
+def _breaker_open() -> bool:
+    return time.time() < _BREAKER_UNTIL
+
+
+def _trip_breaker():
+    global _BREAKER_UNTIL
+    _BREAKER_UNTIL = time.time() + _BREAKER_COOLDOWN_SEC
 
 
 def _norm_date(s: str) -> str:
@@ -62,21 +80,34 @@ async def fetch_agmarknet(
 ) -> list[dict]:
     """Fetch from data.gov.in Agmarknet. Cache all rows in db.mandi_prices for trend.
     Returns a normalised list of price records; empty list on failure.
+
+    Runs the blocking `requests.get` in a thread so the FastAPI event loop is
+    never blocked, and uses a circuit breaker to skip further calls for
+    _BREAKER_COOLDOWN_SEC seconds after any failure.
     """
-    if not AGMARKNET_KEY:
+    if not AGMARKNET_KEY or _breaker_open():
         return []
     params = {"api-key": AGMARKNET_KEY, "format": "json", "limit": limit}
     if crop:
         params["filters[commodity]"] = crop
     if region:
         params["filters[state]"] = region
+
+    def _do_request():
+        return requests.get(AGMARKNET_URL, params=params, timeout=(3, 4))
+
     try:
-        r = requests.get(AGMARKNET_URL, params=params, timeout=10)
+        r = await asyncio.to_thread(_do_request)
+        if r.status_code == 403:
+            _trip_breaker()
+            logger.warning("Agmarknet returned 403 — tripping breaker for %ss", _BREAKER_COOLDOWN_SEC)
+            return []
         r.raise_for_status()
         data = r.json()
         rows = data.get("records") or []
     except Exception as e:
-        logger.warning("Agmarknet fetch failed: %s", e)
+        _trip_breaker()
+        logger.warning("Agmarknet fetch failed (breaker tripped): %s", e)
         return []
 
     out = []

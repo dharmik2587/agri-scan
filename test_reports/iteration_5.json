@@ -1,0 +1,33 @@
+{
+  "summary": "Regression verified for the async+circuit-breaker hotfix in mandi_live.py, weather.py, and server.py. Backend: 7/7 pytest cases pass — /api/market/prices (5x back-to-back, all 200 in <1s after breaker trip), /api/market/trend?days=30/90 (200, correct shape), /api/weather/forecast (200, current{}, daily[7] with spray_level ∈ {good,caution,avoid}), /api/weather/geocode?q=Pune (200, results[] non-empty), 8-parallel /api/market/prices completes in <3s total (event loop no longer blocked), auth register+login and /api/advisor/query sanity all green. Frontend: /market and /dashboard load cleanly with 0 console errors, 0 pageerrors, 0 5xx responses, no React error overlay, no AxiosError text. Price chart + Today's prices table render; WeatherCard shows 27° Pune + 7-day list with spray tags.",
+  "backend_issues": {
+    "critical": [],
+    "minor": [
+      {"endpoint": "/api/market/prices", "issue": "Cold first-ever call (before breaker trips) can take up to ~5-7s due to (3s connect + 4s read) timeout against Agmarknet. After the first failure the breaker trips for 10 minutes and all subsequent calls are <100ms. Not user-visible in practice but worth noting; consider a lower initial timeout or lazily-triggered pre-warm at startup."}
+    ]
+  },
+  "frontend_issues": {
+    "ui_bugs": [],
+    "integration_issues": [],
+    "design_issues": []
+  },
+  "test_report_links": [
+    "/app/backend/tests/test_market_weather_hotfix.py",
+    "/app/test_reports/pytest/hotfix.xml"
+  ],
+  "action_items": [],
+  "critical_code_review_comments": [
+    "asyncio.to_thread + circuit breaker pattern correctly implemented; event-loop is now non-blocking and 8 parallel Market requests complete in under 3s.",
+    "Consider a shorter initial timeout tuple (e.g., (2,3)) or an app-startup pre-warm so the very first user-triggered call doesn't take up to ~7s when Agmarknet is unreachable.",
+    "The breaker is per-process/in-memory — under multiple gunicorn workers each worker will pay the cold-hit cost once. Fine for now given the 10-min cooldown."
+  ],
+  "updated_files": [
+    "/app/backend/tests/test_market_weather_hotfix.py (new)"
+  ],
+  "success_rate": {"backend": "100% (7/7)", "frontend": "100%"},
+  "test_credentials": "None required (auth sanity uses ephemeral TEST_ user)",
+  "seed_data_creation": "One ephemeral TEST_hotfix_* user created via /api/auth/register for sanity check; safe to leave.",
+  "retest_needed": false,
+  "main_agent_can_self_test": true,
+  "context_for_next_testing_agent": "Hotfix is stable. The regression suite lives at /app/backend/tests/test_market_weather_hotfix.py — run with `pytest ... -o addopts=` because backend/pytest.ini injects xdist args this env doesn't need. Note: circuit breaker is in-process; if backend is restarted before testing, expect the first /api/market/prices call to take up to ~7s while Agmarknet is probed and then times out — subsequent calls will be sub-second."
+}

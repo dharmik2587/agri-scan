@@ -4,6 +4,7 @@ from starlette.middleware.cors import CORSMiddleware
 from motor.motor_asyncio import AsyncIOMotorClient
 import os
 import base64
+import asyncio
 import logging
 from pathlib import Path
 from typing import Optional
@@ -305,7 +306,7 @@ async def voice_transcribe(
 @api.get("/weather/forecast")
 async def weather_endpoint(lat: float = Query(...), lon: float = Query(...), days: int = 7):
     try:
-        return weather_forecast(lat, lon, days)
+        return await weather_forecast(lat, lon, days)
     except Exception as e:
         logger.warning("weather forecast failed: %s", e)
         raise HTTPException(status_code=502, detail="Weather service unavailable")
@@ -313,7 +314,7 @@ async def weather_endpoint(lat: float = Query(...), lon: float = Query(...), day
 
 @api.get("/weather/geocode")
 async def weather_geocode_endpoint(q: str = Query(..., min_length=2)):
-    return {"results": weather_geocode(q)}
+    return {"results": await weather_geocode(q)}
 
 
 # ---------- Advisor ----------
@@ -371,6 +372,14 @@ async def on_start():
         await db.listings.create_index([("crop", 1), ("region", 1), ("created_at", -1)])
     except Exception as e:
         logger.warning("Index creation failed: %s", e)
+    # Pre-warm Agmarknet — probe once so the circuit breaker trips (if unreachable)
+    # before any user-facing /market request is made. Non-blocking.
+    async def _prewarm():
+        try:
+            await current_prices_live(db, "Tomato", None)
+        except Exception:
+            pass
+    asyncio.create_task(_prewarm())
 
 
 @app.on_event("shutdown")

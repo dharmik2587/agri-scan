@@ -1,5 +1,7 @@
 """7-day weather forecast + spray suitability via Open-Meteo (free, no API key)."""
+import asyncio
 import logging
+import time
 import requests
 from typing import Optional
 
@@ -7,6 +9,20 @@ logger = logging.getLogger(__name__)
 
 FORECAST_URL = "https://api.open-meteo.com/v1/forecast"
 GEOCODE_URL = "https://geocoding-api.open-meteo.com/v1/search"
+
+# Circuit breaker so a slow / failing Open-Meteo cannot pile up requests on the
+# event loop.
+_BREAKER_UNTIL = 0.0
+_BREAKER_COOLDOWN_SEC = 120
+
+
+def _breaker_open() -> bool:
+    return time.time() < _BREAKER_UNTIL
+
+
+def _trip_breaker():
+    global _BREAKER_UNTIL
+    _BREAKER_UNTIL = time.time() + _BREAKER_COOLDOWN_SEC
 
 # WMO weather code -> short label & icon key
 WMO_MAP = {
@@ -58,17 +74,24 @@ def _label(code: int) -> tuple[str, str]:
     return WMO_MAP.get(int(code), ("—", "cloudy"))
 
 
-def geocode(query: str) -> list[dict]:
-    try:
-        r = requests.get(
+async def geocode(query: str) -> list[dict]:
+    if _breaker_open():
+        return []
+
+    def _do():
+        return requests.get(
             GEOCODE_URL,
             params={"name": query, "count": 5, "language": "en", "format": "json"},
-            timeout=6,
+            timeout=(3, 4),
         )
+
+    try:
+        r = await asyncio.to_thread(_do)
         r.raise_for_status()
         data = r.json()
     except Exception as e:
-        logger.warning("Geocoding failed: %s", e)
+        _trip_breaker()
+        logger.warning("Geocoding failed (breaker tripped): %s", e)
         return []
     out = []
     for row in data.get("results", []) or []:
@@ -85,7 +108,9 @@ def geocode(query: str) -> list[dict]:
     return out
 
 
-def forecast(lat: float, lon: float, days: int = 7) -> dict:
+async def forecast(lat: float, lon: float, days: int = 7) -> dict:
+    if _breaker_open():
+        raise RuntimeError("Weather service temporarily unavailable")
     days = max(1, min(int(days), 14))
     params = {
         "latitude": lat,
@@ -106,12 +131,17 @@ def forecast(lat: float, lon: float, days: int = 7) -> dict:
         "timezone": "auto",
         "forecast_days": days,
     }
+
+    def _do():
+        return requests.get(FORECAST_URL, params=params, timeout=(3, 5))
+
     try:
-        r = requests.get(FORECAST_URL, params=params, timeout=8)
+        r = await asyncio.to_thread(_do)
         r.raise_for_status()
         data = r.json()
     except Exception as e:
-        logger.warning("Open-Meteo fetch failed: %s", e)
+        _trip_breaker()
+        logger.warning("Open-Meteo fetch failed (breaker tripped): %s", e)
         raise
 
     d = data.get("daily", {})
