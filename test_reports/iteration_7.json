@@ -1,0 +1,40 @@
+{
+  "summary": "Iteration 7 delta testing (Multi-Region Voices + Buyer WhatsApp Contact). Frontend fully passes: all 6 language options render in header dropdown, logo appName localizes for en/hi/mr/ta/te/bn, selection persists across reload, English deep-merge fallback works on /calculator (shows 'Calculate') and /advisor (shows localized MR 'सल्ला मिळवा' where defined, EN fallback elsewhere, no 'undefined' anywhere), Profile page renders all 6 profile-language-<code> buttons and clicking any syncs header toggle. Market page shows listing-contact-button anchors with correct https://wa.me/<digits>?text=<encoded> href alongside existing listing-share-button. Backend regression FAILS as flagged in review request: /api/auth/language returns 422 for mr/ta/te/bn because backend/models.py LanguageInput is still Literal['en','hi']. UserPublic.language field has same restriction. This is silently swallowed by the frontend (.catch()) but pollutes console (15 errors during test) and prevents server-side persistence of the new language codes.",
+  "backend_issues": {
+    "critical": [
+      {"endpoint": "POST /api/auth/language", "issue": "Rejects 'mr','ta','te','bn' with 422 literal_error. LanguageInput.language in /app/backend/models.py is Literal['en','hi']; must be widened to Literal['en','hi','mr','ta','te','bn']. UserPublic.language has same Literal and should also be widened so DB reads/updates round-trip.", "priority": "HIGH"}
+    ],
+    "minor": []
+  },
+  "frontend_issues": {
+    "ui_bugs": [],
+    "integration_issues": [
+      {"flow": "Language sync to backend when authenticated", "issue": "LangContext calls POST /api/auth/language on every lang change; for mr/ta/te/bn this yields 422 and console error (silently swallowed by .catch()). Will resolve automatically once backend Literal is widened.", "affected_selectors": ["nav-language-option-mr","nav-language-option-ta","nav-language-option-te","nav-language-option-bn","profile-language-mr","profile-language-ta","profile-language-te","profile-language-bn"]}
+    ],
+    "design_issues": []
+  },
+  "test_report_links": [
+    "/app/backend/tests/test_multilang_i7.py",
+    "/app/test_reports/pytest/i7_lang.xml"
+  ],
+  "action_items": [
+    "Widen /app/backend/models.py LanguageInput.language to Literal['en','hi','mr','ta','te','bn'].",
+    "Also widen UserPublic.language to the same 6-value Literal (currently ['en','hi'])."
+  ],
+  "critical_code_review_comments": [
+    "backend/models.py: UserPublic.language and LanguageInput.language both need to include mr/ta/te/bn to match the frontend LANGUAGES list.",
+    "LangContext.jsx firing /auth/language on every change is fine but should not spam-log to console; consider gating on response !== 422 or converting caught errors to debug-only logs after backend is widened.",
+    "Market.jsx: phone regex .replace(/[^0-9+]/g,'') then length>=7 works. Consider also stripping leading '+' before the length check to avoid a corner case where '+1234567' -> after replace stays '+1234567' (length 8 fine), OK — behaviour verified.",
+    "voice/transcribe uses Form(language: str) — accepts anything; advisor AdvisorInput.language: str — also accepts. Only the auth/language endpoint is strict."
+  ],
+  "updated_files": [
+    "/app/backend/tests/test_multilang_i7.py (new pytest for language codes)"
+  ],
+  "success_rate": {"backend": "50% (4/8 param cases fail — all mr/ta/te/bn on /auth/language)", "frontend": "100%"},
+  "test_credentials": "None required; test registers a fresh TEST_ui_* user via /api/auth/register",
+  "seed_data_creation": "None",
+  "retest_needed": true,
+  "should_main_agent_self_test": true,
+  "context_for_next_testing_agent": "After main agent widens Literal in models.py, re-run pytest backend/tests/test_multilang_i7.py — all 8 should pass. Frontend already validated via UI script (all 6 languages, persistence, fallback, market wa.me href, profile-header sync). Console noise should drop to 0 once backend accepts the new codes.",
+  "rca of the issue": "backend/models.py line 42 defines `class LanguageInput(BaseModel): language: Literal['en','hi']`. Frontend iteration 7 introduced 4 new codes (mr, ta, te, bn) exported from /app/frontend/src/lib/i18n.js LANGUAGES. LangContext posts each new selection to /api/auth/language; Pydantic v2 raises literal_error (422) for the 4 new codes. Reproduction: register user -> POST /api/auth/language {language:'mr'} with Bearer token -> 422 with detail expected 'en' or 'hi'. Mitigation: change to Literal['en','hi','mr','ta','te','bn'] on both LanguageInput and UserPublic.language."
+}

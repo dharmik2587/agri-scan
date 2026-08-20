@@ -19,7 +19,7 @@ class UserPublic(BaseModel):
     name: str
     picture: Optional[str] = None
     auth_provider: Literal["email", "google"] = "email"
-    language: Literal["en", "hi"] = "en"
+    language: Literal["en", "hi", "mr", "ta", "te", "bn"] = "en"
     created_at: str
 
 
@@ -39,7 +39,7 @@ class EmergentSessionInput(BaseModel):
 
 
 class LanguageInput(BaseModel):
-    language: Literal["en", "hi"]
+    language: Literal["en", "hi", "mr", "ta", "te", "bn"]
 
 
 # ---------- Diagnosis ----------

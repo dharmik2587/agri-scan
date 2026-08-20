@@ -1,15 +1,25 @@
 import React from "react";
 import { NavLink, Link, useNavigate } from "react-router-dom";
-import { Leaf, Menu, X, LogOut } from "lucide-react";
+import { Leaf, Menu, X, LogOut, Globe, Check } from "lucide-react";
 import { useAuth } from "@/context/AuthContext";
 import { useLang } from "@/context/LangContext";
 import { NAV } from "@/constants/testIds";
 
 export default function Layout({ children }) {
   const { user, logout } = useAuth();
-  const { t, lang, setLang } = useLang();
+  const { t, lang, setLang, languages } = useLang();
   const navigate = useNavigate();
   const [open, setOpen] = React.useState(false);
+  const [langOpen, setLangOpen] = React.useState(false);
+  const langRef = React.useRef(null);
+
+  React.useEffect(() => {
+    const onClick = (e) => { if (langRef.current && !langRef.current.contains(e.target)) setLangOpen(false); };
+    document.addEventListener("mousedown", onClick);
+    return () => document.removeEventListener("mousedown", onClick);
+  }, []);
+
+  const current = languages.find((l) => l.code === lang) || languages[0];
 
   const links = [
     { to: "/dashboard", label: t.dashboard, testid: NAV.linkDashboard },
@@ -47,14 +57,36 @@ export default function Layout({ children }) {
             ))}
           </nav>
           <div className="flex items-center gap-2">
-            <button
-              data-testid={NAV.langToggle}
-              onClick={() => setLang(lang === "en" ? "hi" : "en")}
-              className="chip hover:bg-muted"
-              title="Toggle language"
-            >
-              {lang === "en" ? "EN · हिं" : "हिं · EN"}
-            </button>
+            <div ref={langRef} className="relative">
+              <button
+                data-testid={NAV.langToggle}
+                onClick={() => setLangOpen((o) => !o)}
+                className="chip hover:bg-muted inline-flex items-center gap-1.5"
+                title="Change language"
+              >
+                <Globe className="w-3.5 h-3.5" />
+                {current.short}
+              </button>
+              {langOpen && (
+                <ul className="absolute right-0 mt-2 z-40 w-52 bg-white border border-border rounded-2xl shadow-lg overflow-hidden">
+                  {languages.map((l) => (
+                    <li key={l.code}>
+                      <button
+                        data-testid={`nav-language-option-${l.code}`}
+                        onClick={() => { setLang(l.code); setLangOpen(false); }}
+                        className={`w-full flex items-center justify-between px-4 py-2.5 text-sm hover:bg-primary/8 ${lang === l.code ? "bg-primary/8 text-primary font-medium" : ""}`}
+                      >
+                        <span className="flex items-center gap-2">
+                          <span className="w-8 text-[10px] label-eyebrow text-muted-foreground">{l.short}</span>
+                          <span>{l.label}</span>
+                        </span>
+                        {lang === l.code && <Check className="w-4 h-4" />}
+                      </button>
+                    </li>
+                  ))}
+                </ul>
+              )}
+            </div>
             {user ? (
               <button data-testid={NAV.signOut} onClick={() => { logout(); navigate("/"); }} className="btn-outline hidden sm:inline-flex items-center gap-2 text-sm">
                 <LogOut className="w-4 h-4" /> {t.signOut}

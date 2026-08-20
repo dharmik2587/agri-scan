@@ -1,0 +1,21 @@
+{
+  "summary": "Iteration 8 delta retest of multi-language backend fix. LanguageInput / UserPublic Literal widened to ['en','hi','mr','ta','te','bn']. All 8 tests in test_multilang_i7.py now PASS (previously 4-6 expected to fail for mr/ta/te/bn). Independently verified: POST /api/auth/language returns 200 for each of en,hi,mr,ta,te,bn; returns 422 for 'xx' and 'fr'; GET /api/auth/me after setting 'mr' returns language='mr' (round-trip through UserPublic serialization OK). Frontend loads correctly, language dropdown shows all 6 languages, switching produced 0 console errors and 0 /api/auth/language 422 responses.",
+  "backend_issues": {"critical": [], "minor": []},
+  "frontend_issues": {"ui_bugs": [], "integration_issues": [], "design_issues": []},
+  "test_report_links": [
+    "/app/backend/tests/test_multilang_i7.py",
+    "/app/test_reports/pytest/multilang_i7_retest.xml"
+  ],
+  "action_items": [],
+  "critical_code_review_comments": [
+    "Suggest centralizing the supported language list (currently repeated as Literal in LanguageInput and UserPublic) into a single enum/constant to avoid future drift when adding a 7th language."
+  ],
+  "updated_files": [],
+  "success_rate": {"backend": "100%", "frontend": "100%"},
+  "test_credentials": "Fresh users registered dynamically (TEST_ prefix).",
+  "seed_data_creation": "None persistent; ephemeral test users only.",
+  "retest_needed": false,
+  "main_agent_can_self_test": true,
+  "context_for_next_testing_agent": "Iteration 8 delta (backend Literal widening) fully verified. test_multilang_i7.py now passes 8/8. All previous iteration_6/7 features unaffected — only backend/models.py Literals changed.",
+  "rca of the issue": "Prior iteration 7: LanguageInput.language and UserPublic.language were Literal['en','hi'] while frontend exposes 6 language buttons — POST /api/auth/language with mr/ta/te/bn was rejected with 422 (silently swallowed on FE). Fix: widened both Literals to include mr,ta,te,bn. Verified backend acceptance, persistence via /me, and rejection of unknown codes still returns 422."
+}

@@ -7,7 +7,7 @@ import { User, Mail, Languages } from "lucide-react";
 
 export default function Profile() {
   const { user, loading } = useAuth();
-  const { t, lang, setLang } = useLang();
+  const { t, lang, setLang, languages } = useLang();
 
   if (loading) return null;
   if (!user) return <Navigate to="/login" replace />;
@@ -38,17 +38,15 @@ export default function Profile() {
             <Languages className="w-4 h-4 text-primary" />
             <h3 className="font-heading text-lg font-semibold">Language</h3>
           </div>
-          <div className="flex gap-2">
-            <button
-              data-testid={PROFILE.languageEn}
-              onClick={() => setLang("en")}
-              className={`px-5 py-2.5 rounded-full text-sm font-medium border transition-colors ${lang === "en" ? "bg-primary text-primary-foreground border-primary" : "bg-white border-border text-foreground hover:bg-muted"}`}
-            >English</button>
-            <button
-              data-testid={PROFILE.languageHi}
-              onClick={() => setLang("hi")}
-              className={`px-5 py-2.5 rounded-full text-sm font-medium border transition-colors ${lang === "hi" ? "bg-primary text-primary-foreground border-primary" : "bg-white border-border text-foreground hover:bg-muted"}`}
-            >हिंदी</button>
+          <div className="flex flex-wrap gap-2">
+            {languages.map((l) => (
+              <button
+                key={l.code}
+                data-testid={`profile-language-${l.code}`}
+                onClick={() => setLang(l.code)}
+                className={`px-5 py-2.5 rounded-full text-sm font-medium border transition-colors ${lang === l.code ? "bg-primary text-primary-foreground border-primary" : "bg-white border-border text-foreground hover:bg-muted"}`}
+              >{l.label}</button>
+            ))}
           </div>
         </div>
       </div>
