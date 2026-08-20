@@ -93,6 +93,8 @@ const dict = {
       summary: "Summary",
       backHome: "Back to dashboard",
       openCalc: "Open calculator",
+      share: "Share",
+      savePdf: "Save PDF",
     },
     calc: {
       title: "Pesticide & Fertilizer Calculator",
@@ -236,6 +238,8 @@ const dict = {
       summary: "सारांश",
       backHome: "डैशबोर्ड पर लौटें",
       openCalc: "कैलकुलेटर खोलें",
+      share: "साझा करें",
+      savePdf: "पीडीएफ़ बनाएँ",
     },
     calc: {
       title: "कीटनाशक और उर्वरक कैलकुलेटर",

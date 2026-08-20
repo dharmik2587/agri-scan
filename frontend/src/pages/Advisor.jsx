@@ -2,13 +2,15 @@ import React, { useEffect, useMemo, useRef, useState } from "react";
 import { toast } from "sonner";
 import {
   Sparkles, Search, MapPin, Camera, X, Leaf, TestTube2, Sprout, Bug, Beaker,
-  ShieldAlert, Landmark, Info, ChevronDown, Volume2, VolumeX,
+  ShieldAlert, Landmark, Info, ChevronDown, Volume2, VolumeX, Share2, Printer,
 } from "lucide-react";
 import client from "@/lib/api";
 import { useLang } from "@/context/LangContext";
 import { ADVISOR } from "@/constants/testIds";
 import VoiceInput from "@/components/VoiceInput";
 import { speak, stopSpeaking, isTTSAvailable } from "@/lib/tts";
+import { shareContent, buildAdvisoryShareText } from "@/lib/share";
+import { printElementBySelector } from "@/lib/print";
 
 const MAX_BYTES = 10 * 1024 * 1024;
 
@@ -381,7 +383,7 @@ export default function Advisor() {
       )}
 
       {result && (
-        <div ref={resultRef} data-testid={ADVISOR.result} className="mt-10 space-y-6 stagger">
+        <div ref={resultRef} data-testid={ADVISOR.result} data-print-root className="mt-10 space-y-6 stagger">
           <div className="card-soft p-6">
             <div className="flex flex-wrap items-start justify-between gap-3">
               <div>
@@ -390,7 +392,7 @@ export default function Advisor() {
                   {result.district}, {result.state}
                 </h2>
               </div>
-              <div className="flex items-center gap-2">
+              <div data-print-hide="true" className="flex items-center gap-2 flex-wrap">
                 <span className="chip">{result.language?.toUpperCase() || "EN"}</span>
                 {isTTSAvailable() && (
                   <button
@@ -403,6 +405,22 @@ export default function Advisor() {
                     {speaking ? t.advisorPage.stopReading : t.advisorPage.readAloud}
                   </button>
                 )}
+                <button
+                  type="button"
+                  data-testid={ADVISOR.share}
+                  onClick={() => shareContent({ title: "Krishi Mitra advisory", text: buildAdvisoryShareText(result) })}
+                  className="chip inline-flex items-center gap-1 hover:bg-muted"
+                >
+                  <Share2 className="w-3.5 h-3.5" /> {t.diagnosis.share}
+                </button>
+                <button
+                  type="button"
+                  data-testid={ADVISOR.savePdf}
+                  onClick={() => printElementBySelector(`[data-testid="${ADVISOR.result}"]`)}
+                  className="chip inline-flex items-center gap-1 hover:bg-muted"
+                >
+                  <Printer className="w-3.5 h-3.5" /> {t.diagnosis.savePdf}
+                </button>
               </div>
             </div>
             <p data-testid={ADVISOR.summary} className="mt-4 text-sm sm:text-base leading-relaxed">{result.summary}</p>

@@ -55,6 +55,8 @@ export const DIAG = {
   treatmentBlock: "diagnosis-treatment-block",
   openCalculator: "diagnosis-open-calculator",
   backDashboard: "diagnosis-back-dashboard",
+  share: "diagnosis-share-button",
+  savePdf: "diagnosis-save-pdf-button",
 };
 
 export const CALC = {
@@ -133,4 +135,10 @@ export const ADVISOR = {
   voiceInput: "advisor-voice-input-button",
   readAloud: "advisor-read-aloud-button",
   stopReading: "advisor-stop-reading-button",
+  share: "advisor-share-button",
+  savePdf: "advisor-save-pdf-button",
+};
+
+export const LISTING = {
+  share: "listing-share-button",
 };

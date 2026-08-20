@@ -1,12 +1,13 @@
 import React, { useEffect, useMemo, useState } from "react";
 import { useSearchParams } from "react-router-dom";
 import { LineChart, Line, XAxis, YAxis, Tooltip, ResponsiveContainer, Area, AreaChart } from "recharts";
-import { TrendingUp, MapPin, IndianRupee, Send, Store } from "lucide-react";
+import { TrendingUp, MapPin, IndianRupee, Send, Store, Share2 } from "lucide-react";
 import { toast } from "sonner";
 import client from "@/lib/api";
 import { useAuth } from "@/context/AuthContext";
 import { useLang } from "@/context/LangContext";
-import { MARKET } from "@/constants/testIds";
+import { MARKET, LISTING } from "@/constants/testIds";
+import { shareContent, buildListingShareText } from "@/lib/share";
 
 const MARKET_IMG = "https://images.pexels.com/photos/37321079/pexels-photo-37321079.jpeg?auto=compress&cs=tinysrgb&dpr=2&h=650&w=940";
 
@@ -216,15 +217,26 @@ export default function MarketPage() {
           <div className="mt-4 space-y-3">
             {listings.length === 0 && <div className="text-sm text-muted-foreground border border-dashed border-border rounded-xl p-6 text-center">{t.marketPage.noListings}</div>}
             {listings.map((l) => (
-              <div key={l.listing_id} className="flex items-center justify-between p-4 rounded-xl border border-border bg-white">
-                <div>
+              <div key={l.listing_id} className="flex items-center justify-between p-4 rounded-xl border border-border bg-white gap-3">
+                <div className="min-w-0">
                   <div className="text-sm font-semibold">{l.crop} · {l.quantity_kg} kg</div>
                   <div className="text-[11px] text-muted-foreground flex items-center gap-1"><MapPin className="w-3 h-3" /> {l.region} · by {l.farmer_name}</div>
                   {l.notes && <div className="text-xs text-muted-foreground mt-1">{l.notes}</div>}
                 </div>
-                <div className="text-right">
-                  <div className="font-heading text-lg font-semibold">₹{l.asking_price_per_kg}/kg</div>
-                  {l.contact && <div className="text-[11px] text-primary font-medium">{l.contact}</div>}
+                <div className="text-right flex items-center gap-2 shrink-0">
+                  <div>
+                    <div className="font-heading text-lg font-semibold">₹{l.asking_price_per_kg}/kg</div>
+                    {l.contact && <div className="text-[11px] text-primary font-medium">{l.contact}</div>}
+                  </div>
+                  <button
+                    type="button"
+                    data-testid={LISTING.share}
+                    onClick={() => shareContent({ title: "Produce for sale", text: buildListingShareText(l) })}
+                    title="Share on WhatsApp"
+                    className="w-9 h-9 grid place-items-center rounded-full border border-border bg-white text-primary hover:bg-primary/8 transition-colors"
+                  >
+                    <Share2 className="w-4 h-4" />
+                  </button>
                 </div>
               </div>
             ))}

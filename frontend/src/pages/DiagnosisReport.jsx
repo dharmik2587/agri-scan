@@ -1,10 +1,12 @@
 import React, { useEffect, useState } from "react";
 import { useNavigate, useParams, Link } from "react-router-dom";
-import { ArrowLeft, Calculator, Leaf, ShieldAlert, Sprout, Beaker, TrendingUp, CheckCircle2, AlertTriangle } from "lucide-react";
+import { ArrowLeft, Calculator, Leaf, ShieldAlert, Sprout, Beaker, TrendingUp, CheckCircle2, AlertTriangle, Share2, Printer } from "lucide-react";
 import client, { buildFileUrl } from "@/lib/api";
 import { useLang } from "@/context/LangContext";
 import { useAuth } from "@/context/AuthContext";
 import { DIAG } from "@/constants/testIds";
+import { shareContent, buildDiagnosisShareText } from "@/lib/share";
+import { printElementBySelector } from "@/lib/print";
 
 const SEV_STYLE = {
   healthy: { chip: "bg-secondary/15 text-secondary border-secondary/40", bar: "bg-secondary", icon: CheckCircle2 },
@@ -50,14 +52,22 @@ export default function DiagnosisReport() {
   const confidencePct = Math.round((scan.disease_confidence || 0) * 100);
 
   return (
-    <div data-testid={DIAG.report} className="max-w-6xl mx-auto px-5 sm:px-8 py-10 fade-in">
-      <div className="flex items-center gap-3 mb-6">
+    <div data-testid={DIAG.report} data-print-root className="max-w-6xl mx-auto px-5 sm:px-8 py-10 fade-in">
+      <div data-print-hide="true" className="flex flex-wrap items-center gap-3 mb-6">
         <button data-testid={DIAG.backDashboard} onClick={() => navigate("/dashboard")} className="btn-outline inline-flex items-center gap-2 text-sm">
           <ArrowLeft className="w-4 h-4" /> {t.diagnosis.backHome}
         </button>
         <button data-testid={DIAG.openCalculator} onClick={() => navigate(`/calculator?crop=${encodeURIComponent(scan.plant_name)}&severity=${scan.severity}`)} className="btn-primary inline-flex items-center gap-2 text-sm">
           <Calculator className="w-4 h-4" /> {t.diagnosis.openCalc}
         </button>
+        <div className="ml-auto flex gap-2">
+          <button data-testid={DIAG.share} onClick={() => shareContent({ title: "AgriScan diagnosis", text: buildDiagnosisShareText(scan) })} className="btn-outline inline-flex items-center gap-2 text-sm">
+            <Share2 className="w-4 h-4" /> {t.diagnosis.share}
+          </button>
+          <button data-testid={DIAG.savePdf} onClick={() => printElementBySelector(`[data-testid="${DIAG.report}"]`)} className="btn-outline inline-flex items-center gap-2 text-sm">
+            <Printer className="w-4 h-4" /> {t.diagnosis.savePdf}
+          </button>
+        </div>
       </div>
 
       <div className="grid lg:grid-cols-5 gap-6">
