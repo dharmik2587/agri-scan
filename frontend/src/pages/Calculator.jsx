@@ -76,6 +76,9 @@ export default function CalculatorPage() {
 
   const setField = (k) => (e) => setForm((f) => ({ ...f, [k]: e.target ? e.target.value : e }));
 
+  // Pre-computed stage labels to avoid visual-edits <span> injection inside <option>
+  const stageOptions = STAGE_OPTS.map((s) => ({ v: s.v, label: t.stages[s.v] || s.label }));
+
   return (
     <div className="max-w-7xl mx-auto px-5 sm:px-8 py-10 fade-in">
       <div className="max-w-2xl">
@@ -119,7 +122,7 @@ export default function CalculatorPage() {
           <div>
             <label className="label-eyebrow text-muted-foreground">{t.calc.stage}</label>
             <select data-testid={CALC.stage} value={form.growth_stage} onChange={setField("growth_stage")} className="mt-2 w-full border border-border rounded-xl px-3 py-2 bg-white text-sm">
-              {STAGE_OPTS.map((s) => (<option key={s.v} value={s.v}>{t.stages[s.v] || s.label}</option>))}
+              {stageOptions.map((s) => (<option key={s.v} value={s.v}>{s.label}</option>))}
             </select>
           </div>
           <div>

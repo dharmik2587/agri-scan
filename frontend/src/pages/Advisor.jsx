@@ -187,6 +187,10 @@ export default function Advisor() {
 
   const setField = (k) => (e) => setForm((f) => ({ ...f, [k]: e.target ? e.target.value : e }));
 
+  // Pre-computed strings so visual-edits doesn't inject <span> inside <option>
+  const statePlaceholder = "— " + t.advisorPage.state + " —";
+  const districtPlaceholder = form.state ? t.advisorPage.selectDistrict : t.advisorPage.selectState;
+
   const attachPhoto = async (file) => {
     try {
       const b64 = await readAndCompress(file);
@@ -261,7 +265,7 @@ export default function Advisor() {
               onChange={(e) => setForm((f) => ({ ...f, state: e.target.value, district: "" }))}
               className="flex-1 outline-none bg-transparent text-sm"
             >
-              <option value="">— {t.advisorPage.state} —</option>
+              <option value="">{statePlaceholder}</option>
               {meta.states.map((s) => (<option key={s} value={s}>{s}</option>))}
             </select>
           </div>
@@ -277,7 +281,7 @@ export default function Advisor() {
               onChange={setField("district")}
               className="flex-1 outline-none bg-transparent text-sm disabled:opacity-60"
             >
-              <option value="">{form.state ? t.advisorPage.selectDistrict : t.advisorPage.selectState}</option>
+              <option value="">{districtPlaceholder}</option>
               {districts.map((d) => (<option key={d} value={d}>{d}</option>))}
             </select>
           </div>

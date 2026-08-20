@@ -17,8 +17,7 @@ export default function MarketPage() {
   const [meta, setMeta] = useState({ crops: [], regions: [] });
   const [crop, setCrop] = useState(params.get("crop") || "Tomato");
   const [region, setRegion] = useState(params.get("region") || "");
-  const [days, setDays] = useState(30);
-  const [prices, setPrices] = useState([]);
+  const [days, setDays] = useState(30);  const [prices, setPrices] = useState([]);
   const [trend, setTrend] = useState([]);
   const [pricesSource, setPricesSource] = useState("mock");
   const [trendSource, setTrendSource] = useState("mock");
@@ -74,6 +73,9 @@ export default function MarketPage() {
     }
   };
 
+  // Pre-computed strings so visual-edits doesn't inject <span> inside <option>
+  const allLabel = t.marketPage.all;
+
   return (
     <div data-testid={MARKET.page} className="max-w-7xl mx-auto px-5 sm:px-8 py-10 fade-in">
       <div className="relative overflow-hidden rounded-3xl mb-8">
@@ -98,7 +100,7 @@ export default function MarketPage() {
         <div className="card-soft p-3 md:col-span-2 flex items-center gap-3">
           <label className="label-eyebrow text-muted-foreground w-16 shrink-0">{t.marketPage.filterRegion}</label>
           <select data-testid={MARKET.regionFilter} value={region} onChange={(e) => setRegion(e.target.value)} className="flex-1 border-none outline-none bg-transparent text-sm font-medium">
-            <option value="">{t.marketPage.all}</option>
+            <option value="">{allLabel}</option>
             {meta.regions.map((r) => (<option key={r} value={r}>{r}</option>))}
           </select>
         </div>
