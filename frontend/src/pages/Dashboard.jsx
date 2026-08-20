@@ -3,6 +3,7 @@ import { useNavigate } from "react-router-dom";
 import { toast } from "sonner";
 import { ScanLine, Calendar, ArrowUpRight } from "lucide-react";
 import UploadZone from "@/components/UploadZone";
+import WeatherCard from "@/components/WeatherCard";
 import client, { buildFileUrl } from "@/lib/api";
 import { useAuth } from "@/context/AuthContext";
 import { useLang } from "@/context/LangContext";
@@ -75,45 +76,48 @@ export default function Dashboard() {
           </div>
         </div>
 
-        <aside className="card-soft p-6">
-          <div className="flex items-center justify-between">
-            <h3 className="font-heading text-lg font-semibold flex items-center gap-2"><ScanLine className="w-4 h-4 text-primary" /> {t.upload.recentScans}</h3>
-            {user && recent.length > 0 && (
-              <button onClick={() => navigate("/history")} className="text-xs text-primary font-medium inline-flex items-center gap-1">All <ArrowUpRight className="w-3 h-3" /></button>
+        <aside className="space-y-6">
+          <WeatherCard />
+          <div className="card-soft p-6">
+            <div className="flex items-center justify-between">
+              <h3 className="font-heading text-lg font-semibold flex items-center gap-2"><ScanLine className="w-4 h-4 text-primary" /> {t.upload.recentScans}</h3>
+              {user && recent.length > 0 && (
+                <button onClick={() => navigate("/history")} className="text-xs text-primary font-medium inline-flex items-center gap-1">All <ArrowUpRight className="w-3 h-3" /></button>
+              )}
+            </div>
+            {!user && (
+              <p className="text-xs text-muted-foreground mt-3">
+                <button onClick={() => navigate("/login")} className="underline underline-offset-2 text-primary">Sign in</button> to save scans and access them anytime.
+              </p>
             )}
-          </div>
-          {!user && (
-            <p className="text-xs text-muted-foreground mt-3">
-              <button onClick={() => navigate("/login")} className="underline underline-offset-2 text-primary">Sign in</button> to save scans and access them anytime.
-            </p>
-          )}
-          <div className="mt-4 space-y-3">
-            {recent.length === 0 ? (
-              <div className="text-sm text-muted-foreground border border-dashed border-border rounded-xl p-6 text-center">
-                {t.upload.empty}
-              </div>
-            ) : (
-              recent.map((r) => (
-                <button
-                  key={r.scan_id}
-                  onClick={() => { sessionStorage.setItem(`scan:${r.scan_id}`, JSON.stringify(r)); navigate(`/scan/${r.scan_id}`); }}
-                  className="w-full flex items-center gap-3 p-3 rounded-xl border border-border hover:bg-muted transition-colors text-left"
-                >
-                  {r.image_url ? (
-                    <img src={buildFileUrl(r.image_url)} alt="scan" className="w-12 h-12 object-cover rounded-lg" />
-                  ) : (
-                    <div className="w-12 h-12 rounded-lg bg-muted grid place-items-center text-muted-foreground"><ScanLine className="w-4 h-4" /></div>
-                  )}
-                  <div className="flex-1 min-w-0">
-                    <div className="text-sm font-semibold truncate">{r.plant_name} · {r.disease_name}</div>
-                    <div className="text-[11px] text-muted-foreground flex items-center gap-1">
-                      <Calendar className="w-3 h-3" /> {new Date(r.created_at).toLocaleDateString()}
+            <div className="mt-4 space-y-3">
+              {recent.length === 0 ? (
+                <div className="text-sm text-muted-foreground border border-dashed border-border rounded-xl p-6 text-center">
+                  {t.upload.empty}
+                </div>
+              ) : (
+                recent.map((r) => (
+                  <button
+                    key={r.scan_id}
+                    onClick={() => { sessionStorage.setItem(`scan:${r.scan_id}`, JSON.stringify(r)); navigate(`/scan/${r.scan_id}`); }}
+                    className="w-full flex items-center gap-3 p-3 rounded-xl border border-border hover:bg-muted transition-colors text-left"
+                  >
+                    {r.image_url ? (
+                      <img src={buildFileUrl(r.image_url)} alt="scan" className="w-12 h-12 object-cover rounded-lg" />
+                    ) : (
+                      <div className="w-12 h-12 rounded-lg bg-muted grid place-items-center text-muted-foreground"><ScanLine className="w-4 h-4" /></div>
+                    )}
+                    <div className="flex-1 min-w-0">
+                      <div className="text-sm font-semibold truncate">{r.plant_name} · {r.disease_name}</div>
+                      <div className="text-[11px] text-muted-foreground flex items-center gap-1">
+                        <Calendar className="w-3 h-3" /> {new Date(r.created_at).toLocaleDateString()}
+                      </div>
                     </div>
-                  </div>
-                  <span className={`chip ${SEV_COLOR[r.severity] || SEV_COLOR.mild}`}>{r.severity}</span>
-                </button>
-              ))
-            )}
+                    <span className={`chip ${SEV_COLOR[r.severity] || SEV_COLOR.mild}`}>{r.severity}</span>
+                  </button>
+                ))
+              )}
+            </div>
           </div>
         </aside>
       </div>

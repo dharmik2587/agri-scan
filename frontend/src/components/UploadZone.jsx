@@ -1,8 +1,9 @@
 import React, { useCallback, useRef, useState } from "react";
-import { Upload, Camera, X, Sparkles } from "lucide-react";
+import { Upload, Camera, X, Sparkles, StickyNote } from "lucide-react";
 import { toast } from "sonner";
 import { UPLOAD } from "@/constants/testIds";
 import { useLang } from "@/context/LangContext";
+import VoiceInput from "@/components/VoiceInput";
 
 const MAX_BYTES = 10 * 1024 * 1024; // 10MB
 
@@ -37,9 +38,10 @@ async function readAndCompress(file) {
 }
 
 export default function UploadZone({ onAnalyze, analyzing }) {
-  const { t } = useLang();
+  const { t, lang } = useLang();
   const [preview, setPreview] = useState(null);
   const [payload, setPayload] = useState(null);
+  const [notes, setNotes] = useState("");
   const [dragging, setDragging] = useState(false);
   const fileRef = useRef(null);
   const camRef = useRef(null);
@@ -64,6 +66,7 @@ export default function UploadZone({ onAnalyze, analyzing }) {
   const clear = () => {
     setPreview(null);
     setPayload(null);
+    setNotes("");
     if (fileRef.current) fileRef.current.value = "";
     if (camRef.current) camRef.current.value = "";
   };
@@ -125,11 +128,34 @@ export default function UploadZone({ onAnalyze, analyzing }) {
               <div className="label-eyebrow text-muted-foreground">Ready to analyze</div>
               <h3 className="font-heading text-lg sm:text-xl font-semibold mt-1">Your plant photo is queued</h3>
               <p className="text-sm text-muted-foreground mt-1">Our AI agronomist will identify the plant, diagnose diseases, and recommend treatment in about 10 seconds.</p>
+              <div className="mt-4">
+                <label className="label-eyebrow text-muted-foreground flex items-center gap-1">
+                  <StickyNote className="w-3.5 h-3.5" /> {t.upload.notes}
+                </label>
+                <div className="mt-2 relative">
+                  <textarea
+                    data-testid={UPLOAD.notesInput}
+                    rows={2}
+                    value={notes}
+                    onChange={(e) => setNotes(e.target.value)}
+                    placeholder={t.upload.voiceHint}
+                    className="w-full border border-border rounded-xl px-3 py-2 pr-12 bg-white text-sm resize-none"
+                  />
+                  <div className="absolute top-2 right-2">
+                    <VoiceInput
+                      language={lang}
+                      testid={UPLOAD.voiceInput}
+                      size="sm"
+                      onTranscript={(text) => setNotes((n) => (n ? n + " " + text : text))}
+                    />
+                  </div>
+                </div>
+              </div>
               <div className="mt-4 flex flex-wrap gap-3">
                 <button
                   data-testid={UPLOAD.analyzeButton}
                   disabled={analyzing}
-                  onClick={() => onAnalyze(payload)}
+                  onClick={() => onAnalyze({ ...payload, notes: notes.trim() || null })}
                   className="btn-primary inline-flex items-center gap-2 disabled:opacity-70 disabled:cursor-wait"
                 >
                   <Sparkles className="w-4 h-4" /> {analyzing ? t.upload.analyzing : t.upload.analyze}

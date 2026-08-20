@@ -39,6 +39,7 @@ from mandi_live import current_prices_live, price_trend_live
 from voice import transcribe_audio
 from india_data import list_states, districts_for, all_crops
 from advisor import advise as advisor_run
+from weather import forecast as weather_forecast, geocode as weather_geocode
 
 from pydantic import BaseModel as _PBase
 from typing import Optional as _Opt
@@ -298,6 +299,21 @@ async def voice_transcribe(
         logger.error("transcribe failed: %s", e)
         raise HTTPException(status_code=500, detail="Transcription failed")
     return {"text": text, "language": language}
+
+
+# ---------- Weather ----------
+@api.get("/weather/forecast")
+async def weather_endpoint(lat: float = Query(...), lon: float = Query(...), days: int = 7):
+    try:
+        return weather_forecast(lat, lon, days)
+    except Exception as e:
+        logger.warning("weather forecast failed: %s", e)
+        raise HTTPException(status_code=502, detail="Weather service unavailable")
+
+
+@api.get("/weather/geocode")
+async def weather_geocode_endpoint(q: str = Query(..., min_length=2)):
+    return {"results": weather_geocode(q)}
 
 
 # ---------- Advisor ----------

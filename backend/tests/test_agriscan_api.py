@@ -269,3 +269,55 @@ def test_scans_list_and_get_and_delete(session, auth_headers, diagnose_scan):
 
     r = session.get(f"{API}/scans/{scan_id}", headers=auth_headers)
     assert r.status_code == 404
+
+
+# ------------- Weather -------------
+def test_weather_geocode(session):
+    r = session.get(f"{API}/weather/geocode", params={"q": "Pune"}, timeout=15)
+    assert r.status_code == 200, r.text
+    j = r.json()
+    assert "results" in j and isinstance(j["results"], list) and len(j["results"]) >= 1
+    first = j["results"][0]
+    for k in ["name", "admin1", "country", "latitude", "longitude"]:
+        assert k in first, f"missing {k}"
+    assert isinstance(first["latitude"], (int, float))
+    assert isinstance(first["longitude"], (int, float))
+
+
+def test_weather_forecast(session):
+    r = session.get(f"{API}/weather/forecast", params={"lat": 18.52, "lon": 73.85, "days": 7}, timeout=15)
+    assert r.status_code == 200, r.text
+    j = r.json()
+    for k in ["latitude", "longitude", "timezone", "current", "daily"]:
+        assert k in j, f"missing {k}"
+    cur = j["current"]
+    for k in ["temperature", "humidity", "wind_kmh", "weather_label", "weather_icon"]:
+        assert k in cur, f"missing current.{k}"
+    assert isinstance(j["daily"], list) and len(j["daily"]) == 7
+    for d in j["daily"]:
+        for k in ["date", "temp_max", "temp_min", "precip_probability", "precip_mm", "wind_kmh", "weather_label", "weather_icon", "spray_level", "spray_reason"]:
+            assert k in d, f"missing daily.{k}"
+        assert d["spray_level"] in ("good", "caution", "avoid"), f"bad spray_level {d['spray_level']}"
+
+
+def test_weather_forecast_missing_params(session):
+    r = session.get(f"{API}/weather/forecast", timeout=10)
+    assert r.status_code == 422, f"expected 422, got {r.status_code}"
+
+
+# ------------- Diagnose with notes -------------
+def test_diagnose_with_notes_persisted(session, auth):
+    token, _ = auth
+    payload = {
+        "image_base64": TINY_JPEG_B64,
+        "mime_type": "image/jpeg",
+        "notes": "yellow spots on lower leaves",
+    }
+    r = session.post(f"{API}/diagnose", json=payload, headers={"Authorization": f"Bearer {token}"}, timeout=120)
+    assert r.status_code == 200, r.text
+    scan = r.json()
+    assert "scan_id" in scan
+    # Verify stored scan includes notes
+    got = session.get(f"{API}/scans/{scan['scan_id']}", headers={"Authorization": f"Bearer {token}"})
+    assert got.status_code == 200
+    assert got.json().get("notes") == "yellow spots on lower leaves"

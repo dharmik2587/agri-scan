@@ -74,6 +74,9 @@ const dict = {
       analyzing: "Analyzing your image…",
       recentScans: "Recent scans",
       empty: "Your recent scans will appear here",
+      voiceNote: "Voice note (optional)",
+      voiceHint: "Tap the mic and describe what you're seeing",
+      notes: "Notes for the AI",
     },
     diagnosis: {
       title: "Diagnosis report",
@@ -214,6 +217,9 @@ const dict = {
       analyzing: "आपकी छवि का विश्लेषण हो रहा है…",
       recentScans: "हाल के स्कैन",
       empty: "आपके हाल के स्कैन यहाँ दिखेंगे",
+      voiceNote: "वॉइस नोट (वैकल्पिक)",
+      voiceHint: "माइक दबाकर बताइए आप क्या देख रहे हैं",
+      notes: "एआई के लिए टिप्पणी",
     },
     diagnosis: {
       title: "निदान रिपोर्ट",

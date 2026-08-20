@@ -29,6 +29,19 @@ export const UPLOAD = {
   analyzeButton: "upload-analyze-button",
   clearButton: "upload-clear-button",
   analyzingIndicator: "upload-analyzing-indicator",
+  voiceInput: "upload-voice-input-button",
+  notesInput: "upload-notes-input",
+};
+
+export const WEATHER = {
+  card: "weather-card",
+  cityInput: "weather-city-input",
+  cityResult: "weather-city-result",
+  currentTemp: "weather-current-temp",
+  dailyList: "weather-daily-list",
+  dayItem: "weather-day-item",
+  sprayBadge: "weather-spray-badge",
+  useGeolocation: "weather-use-geolocation-button",
 };
 
 export const DIAG = {
