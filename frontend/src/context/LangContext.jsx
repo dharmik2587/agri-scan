@@ -26,7 +26,16 @@ function deepMerge(base, override) {
 export function LangProvider({ children }) {
   const [lang, setLang] = useState(() => {
     const stored = localStorage.getItem("agriscan_lang");
-    return LANGUAGES.some((l) => l.code === stored) ? stored : "en";
+    if (LANGUAGES.some((l) => l.code === stored)) return stored;
+    // First visit: try to match the browser's preferred language to a supported one.
+    try {
+      const candidates = (navigator.languages && navigator.languages.length ? navigator.languages : [navigator.language || "en"]);
+      for (const raw of candidates) {
+        const c = (raw || "").toLowerCase().split("-")[0];
+        if (LANGUAGES.some((l) => l.code === c)) return c;
+      }
+    } catch {}
+    return "en";
   });
 
   useEffect(() => {

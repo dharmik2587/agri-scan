@@ -280,6 +280,17 @@ async def delete_listing(listing_id: str, authorization: Optional[str] = Header(
     return {"ok": True}
 
 
+@api.post("/market/listings/{listing_id}/track")
+async def track_listing(listing_id: str, kind: str = Query(..., regex="^(contact|share|view)$")):
+    """Fire-and-forget engagement counter. No auth required; failures are silent."""
+    field = f"{kind}_count"
+    res = await db.listings.update_one(
+        {"listing_id": listing_id},
+        {"$inc": {field: 1}, "$set": {"last_engagement_at": utcnow_iso()}},
+    )
+    return {"ok": res.matched_count > 0, "kind": kind}
+
+
 # ---------- Voice ----------
 from fastapi import UploadFile, File, Form
 

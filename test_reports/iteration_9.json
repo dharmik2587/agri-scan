@@ -1,0 +1,22 @@
+{
+  "summary": "Iteration 9 delta tested end-to-end. (1) Backend POST /api/market/listings/{id}/track: 6/6 pytest cases pass — contact/share/view increment their respective counters and persist (verified via GET /api/market/listings), invalid kind 'spam' returns 422, missing kind returns 422, nonexistent listing_id returns 200 with {ok:false,kind:...} preserving fire-and-forget semantics. (2) Frontend Market page: registered a fresh user via API, POSTed a Tomato/Maharashtra listing with contact '+919876543210', navigated to /market, clicked data-testid='listing-contact-button' (preventDefault applied to skip new-tab) and data-testid='listing-share-button' — GET /api/market/listings then reported contact_count=1 and share_count=1 for that listing, and data-testid='listing-engagement' chip rendered. (3) LangContext auto-detect: fresh browser contexts with navigator.language(s) overridden via addInitScript → hi-IN,hi stored 'hi' and header shows 'एग्रीस्कैन'; mr-IN,mr stored 'mr' (logo mr text present but uses ZWJ codepoint अ\\u200dॅग्रीस्कॅन in i18n.js — matches functionally); ta-IN,ta stored 'ta'; fr-FR,fr (unsupported) fell back to 'en' with 'AgriScan' logo; and with localStorage 'agriscan_lang'='en' preset the hi-IN header did NOT override it (stored='en'). (4) Regression tour of /, /dashboard, /advisor, /market, /profile produced 0 console errors.",
+  "backend_issues": {"critical": [], "minor": []},
+  "frontend_issues": {"ui_bugs": [], "integration_issues": [], "design_issues": []},
+  "test_report_links": [
+    "/app/backend/tests/test_listing_tracking_i9.py",
+    "/app/test_reports/pytest/tracking_i9.xml"
+  ],
+  "action_items": [],
+  "critical_code_review_comments": [
+    "server.py track_listing: consider using $setOnInsert with upsert=False (current impl already does not upsert — OK). Ok.",
+    "Market.jsx trackListing: optimistic-update increments locally even when the backend responds ok:false (stale id). Minor — fine for fire-and-forget UX.",
+    "i18n.js mr appName uses zero-width joiner (U+200D) between अ and ॅ; harmless but worth normalizing so tests can match the plain 'अॅग्रीस्कॅन' string."
+  ],
+  "updated_files": [],
+  "success_rate": {"backend": "100%", "frontend": "100%"},
+  "test_credentials": "Ephemeral TEST_ users registered via /api/auth/register during tests.",
+  "seed_data_creation": "Created 2 TEST_ listings (Tomato/Maharashtra) during backend + frontend tests. Non-critical, prefixed for cleanup.",
+  "retest_needed": false,
+  "main_agent_can_self_test": true,
+  "context_for_next_testing_agent": "Iteration 9 (POST /api/market/listings/{id}/track + LangContext navigator-based auto-detect + Market engagement chip) fully verified. To retest lang detection, use browser.new_context() + add_init_script overriding navigator.language and navigator.languages BEFORE goto; setExtraHTTPHeaders alone does NOT change navigator.language and will make the test appear to fail."
+}

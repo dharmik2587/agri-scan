@@ -291,7 +291,7 @@ const dict = {
     units: { acre: "एकड़", hectare: "हेक्टेयर", sqm: "वर्ग मी." },
   },
   mr: {
-    appName: "अ‍ॅग्रीस्कॅन",
+    appName: "अॅग्रीस्कॅन",
     tagline: "प्रत्येक शेतकऱ्यासाठी एआय-आधारित पीक आरोग्य",
     getStarted: "सुरू करा",
     signIn: "साइन इन",

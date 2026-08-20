@@ -1,7 +1,7 @@
 import React, { useEffect, useMemo, useState } from "react";
 import { useSearchParams } from "react-router-dom";
 import { LineChart, Line, XAxis, YAxis, Tooltip, ResponsiveContainer, Area, AreaChart } from "recharts";
-import { TrendingUp, MapPin, IndianRupee, Send, Store, Share2, MessageCircle } from "lucide-react";
+import { TrendingUp, MapPin, IndianRupee, Send, Store, Share2, MessageCircle, Eye } from "lucide-react";
 import { toast } from "sonner";
 import client from "@/lib/api";
 import { useAuth } from "@/context/AuthContext";
@@ -54,6 +54,11 @@ export default function MarketPage() {
     client.get(`/market/listings?${q.toString()}`).then((r) => setListings(r.data));
   };
   useEffect(loadListings, [crop, region]);
+
+  const trackListing = (id, kind) => {
+    client.post(`/market/listings/${id}/track?kind=${kind}`).catch(() => {});
+    setListings((prev) => prev.map((l) => l.listing_id === id ? { ...l, [`${kind}_count`]: (l[`${kind}_count`] || 0) + 1 } : l));
+  };
 
   const trendCards = useMemo(() => {
     if (!trend.length) return { last: 0, delta: 0 };
@@ -221,6 +226,8 @@ export default function MarketPage() {
               const waHref = phone.length >= 7
                 ? `https://wa.me/${phone.replace(/^\+/, "")}?text=${encodeURIComponent(`Namaste ${l.farmer_name}, I saw your ${l.crop} listing (${l.quantity_kg} kg @ ₹${l.asking_price_per_kg}/kg) on AgriScan. Is it still available?`)}`
                 : null;
+              const contactCount = l.contact_count || 0;
+              const shareCount = l.share_count || 0;
               return (
                 <div key={l.listing_id} className="flex items-center justify-between p-4 rounded-xl border border-border bg-white gap-3">
                   <div className="min-w-0">
@@ -234,12 +241,19 @@ export default function MarketPage() {
                           href={waHref}
                           target="_blank"
                           rel="noopener noreferrer"
+                          onClick={() => trackListing(l.listing_id, "contact")}
                           className="chip inline-flex items-center gap-1 bg-secondary/15 text-secondary border-secondary/40 hover:bg-secondary/25"
                         >
                           <MessageCircle className="w-3.5 h-3.5" /> Contact on WhatsApp
                         </a>
                       ) : (
                         l.contact && <span className="text-[11px] text-primary font-medium">{l.contact}</span>
+                      )}
+                      {(contactCount > 0 || shareCount > 0) && (
+                        <span data-testid="listing-engagement" className="chip text-[10px] text-muted-foreground inline-flex items-center gap-2">
+                          {contactCount > 0 && (<span className="inline-flex items-center gap-1"><MessageCircle className="w-3 h-3" /> {contactCount}</span>)}
+                          {shareCount > 0 && (<span className="inline-flex items-center gap-1"><Share2 className="w-3 h-3" /> {shareCount}</span>)}
+                        </span>
                       )}
                     </div>
                   </div>
@@ -250,7 +264,7 @@ export default function MarketPage() {
                     <button
                       type="button"
                       data-testid={LISTING.share}
-                      onClick={() => shareContent({ title: "Produce for sale", text: buildListingShareText(l) })}
+                      onClick={() => { trackListing(l.listing_id, "share"); shareContent({ title: "Produce for sale", text: buildListingShareText(l) }); }}
                       title="Share on WhatsApp"
                       className="w-9 h-9 grid place-items-center rounded-full border border-border bg-white text-primary hover:bg-primary/8 transition-colors"
                     >
