@@ -24,6 +24,7 @@ export default function Layout({ children }) {
   const links = [
     { to: "/dashboard", label: t.dashboard, testid: NAV.linkDashboard },
     { to: "/advisor", label: t.advisor, testid: NAV.linkAdvisor },
+    { to: "/pesticide", label: t.pesticide || "Pesticide Info", testid: NAV.linkPesticide },
     { to: "/calculator", label: t.calculator, testid: NAV.linkCalculator },
     { to: "/market", label: t.market, testid: NAV.linkMarket },
     ...(user ? [{ to: "/history", label: t.history, testid: NAV.linkHistory }] : []),

@@ -13,6 +13,7 @@ import MarketPage from "@/pages/Market";
 import History from "@/pages/History";
 import Profile from "@/pages/Profile";
 import Advisor from "@/pages/Advisor";
+import PesticideInfo from "@/pages/PesticideInfo";
 import AuthCallback from "@/pages/AuthCallback";
 
 function AppRouter() {
@@ -33,6 +34,7 @@ function AppRouter() {
       <Route path="/scan/:id" element={<Layout><DiagnosisReport /></Layout>} />
       <Route path="/calculator" element={<Layout><CalculatorPage /></Layout>} />
       <Route path="/advisor" element={<Layout><Advisor /></Layout>} />
+      <Route path="/pesticide" element={<Layout><PesticideInfo /></Layout>} />
       <Route path="/market" element={<Layout><MarketPage /></Layout>} />
       <Route path="/history" element={<Layout><History /></Layout>} />
       <Route path="/profile" element={<Layout><Profile /></Layout>} />

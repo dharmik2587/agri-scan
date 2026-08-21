@@ -12,6 +12,7 @@ export const NAV = {
   logo: "nav-logo-link",
   linkDashboard: "nav-link-dashboard",
   linkAdvisor: "nav-link-advisor",
+  linkPesticide: "nav-link-pesticide",
   linkCalculator: "nav-link-calculator",
   linkMarket: "nav-link-market",
   linkHistory: "nav-link-history",
@@ -141,4 +142,27 @@ export const ADVISOR = {
 
 export const LISTING = {
   share: "listing-share-button",
+};
+
+export const PESTICIDE = {
+  page: "pesticide-page",
+  tabName: "pesticide-tab-name",
+  tabPhoto: "pesticide-tab-photo",
+  nameInput: "pesticide-name-input",
+  voiceInput: "pesticide-voice-input-button",
+  photoInput: "pesticide-photo-input",
+  photoPreview: "pesticide-photo-preview",
+  photoClear: "pesticide-photo-clear",
+  submit: "pesticide-submit-button",
+  loading: "pesticide-loading-indicator",
+  result: "pesticide-result",
+  productName: "pesticide-product-name",
+  categoryBadge: "pesticide-category-badge",
+  toxicityBadge: "pesticide-toxicity-badge",
+  activeIngredients: "pesticide-active-ingredients",
+  precautions: "pesticide-precautions",
+  ppe: "pesticide-ppe",
+  firstAid: "pesticide-first-aid",
+  share: "pesticide-share-button",
+  savePdf: "pesticide-save-pdf-button",
 };

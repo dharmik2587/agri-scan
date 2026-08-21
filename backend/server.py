@@ -40,6 +40,7 @@ from mandi_live import current_prices_live, price_trend_live
 from voice import transcribe_audio
 from india_data import list_states, districts_for, all_crops
 from advisor import advise as advisor_run
+from pesticide_info import lookup_pesticide
 from weather import forecast as weather_forecast, geocode as weather_geocode
 
 from pydantic import BaseModel as _PBase
@@ -53,6 +54,12 @@ class AdvisorInput(_PBase):
     language: str = "en"
     question: _Opt[str] = None
     image_base64: _Opt[str] = None
+
+
+class PesticideInput(_PBase):
+    name: _Opt[str] = None
+    image_base64: _Opt[str] = None
+    language: str = "en"
 
 logger = logging.getLogger("agriscan")
 logging.basicConfig(level=logging.INFO, format="%(asctime)s - %(name)s - %(levelname)s - %(message)s")
@@ -367,6 +374,36 @@ async def advisor_query(payload: AdvisorInput, authorization: Optional[str] = He
             await db.advisor_queries.insert_one(doc)
         except Exception as e:
             logger.warning("advisor persist failed: %s", e)
+    return result
+
+
+# ---------- Pesticide Info ----------
+@api.post("/pesticide/lookup")
+async def pesticide_lookup(payload: PesticideInput, authorization: Optional[str] = Header(None)):
+    if not (payload.name and payload.name.strip()) and not payload.image_base64:
+        raise HTTPException(status_code=400, detail="Either name or image_base64 is required")
+    user = await get_optional_user(db, authorization)
+    try:
+        result = await lookup_pesticide(
+            name=payload.name,
+            image_base64=payload.image_base64,
+            language=payload.language or "en",
+        )
+    except Exception as e:
+        logger.error("pesticide lookup failed: %s", e)
+        raise HTTPException(status_code=500, detail="Pesticide lookup failed")
+    if user:
+        try:
+            await db.pesticide_queries.insert_one({
+                "query_id": new_id("pest"),
+                "user_id": user.user_id,
+                "name": payload.name,
+                "language": payload.language or "en",
+                "result": result,
+                "created_at": utcnow_iso(),
+            })
+        except Exception as e:
+            logger.warning("pesticide persist failed: %s", e)
     return result
 
 
