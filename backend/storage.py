@@ -1,63 +1,41 @@
-"""Emergent object storage helpers."""
+"""Storage helpers that work without Emergent object storage."""
 import os
-import requests
+from pathlib import Path
 import logging
 
 logger = logging.getLogger(__name__)
 
-STORAGE_BASE = (os.environ.get("INTEGRATION_PROXY_URL") or "").strip() or "https://integrations.emergentagent.com"
-STORAGE_URL = STORAGE_BASE.rstrip("/") + "/objstore/api/v1/storage"
-EMERGENT_KEY = os.environ.get("EMERGENT_LLM_KEY")
 APP_NAME = os.environ.get("APP_NAME", "agriscan")
+LOCAL_STORAGE_ROOT = Path(os.environ.get("LOCAL_STORAGE_DIR", "/tmp/agriscan_uploads")).resolve()
 
-_storage_key = None
+
+def _safe_path(path: str) -> Path:
+    normalized = Path(path)
+    if normalized.is_absolute():
+        name = str(normalized).lstrip("/")
+    else:
+        name = str(normalized)
+    storage_path = (LOCAL_STORAGE_ROOT / name).resolve()
+    if LOCAL_STORAGE_ROOT not in storage_path.parents and storage_path != LOCAL_STORAGE_ROOT:
+        raise ValueError("Invalid storage path")
+    return storage_path
 
 
 def init_storage(force: bool = False):
-    global _storage_key
-    if _storage_key and not force:
-        return _storage_key
-    resp = requests.post(f"{STORAGE_URL}/init", json={"emergent_key": EMERGENT_KEY}, timeout=30)
-    resp.raise_for_status()
-    _storage_key = resp.json()["storage_key"]
-    logger.info("Object storage initialised")
-    return _storage_key
+    LOCAL_STORAGE_ROOT.mkdir(parents=True, exist_ok=True)
+    logger.info("Using local file storage at %s", LOCAL_STORAGE_ROOT)
+    return "local-storage"
 
 
 def put_object(path: str, data: bytes, content_type: str) -> dict:
-    key = init_storage()
-    resp = requests.put(
-        f"{STORAGE_URL}/objects/{path}",
-        headers={"X-Storage-Key": key, "Content-Type": content_type},
-        data=data,
-        timeout=120,
-    )
-    if resp.status_code == 404:
-        # Cached key might be dead, force reinit once
-        key = init_storage(force=True)
-        resp = requests.put(
-            f"{STORAGE_URL}/objects/{path}",
-            headers={"X-Storage-Key": key, "Content-Type": content_type},
-            data=data,
-            timeout=120,
-        )
-    resp.raise_for_status()
-    return resp.json()
+    target = _safe_path(path)
+    target.parent.mkdir(parents=True, exist_ok=True)
+    target.write_bytes(data)
+    return {"ok": True, "path": str(target), "content_type": content_type, "storage": "local"}
 
 
 def get_object(path: str):
-    key = init_storage()
-    resp = requests.get(
-        f"{STORAGE_URL}/objects/{path}",
-        headers={"X-Storage-Key": key},
-        timeout=60,
-    )
-    if resp.status_code == 404:
-        key = init_storage(force=True)
-        resp = requests.get(
-            f"{STORAGE_URL}/objects/{path}",
-            headers={"X-Storage-Key": key},
-            timeout=60,
-        )
-    resp.raise_for_status()
-    return resp.content, resp.headers.get("Content-Type", "application/octet-stream")
+    target = _safe_path(path)
+    if not target.exists():
+        raise FileNotFoundError(path)
+    return target.read_bytes(), ("image/jpeg" if target.suffix.lower() in {".jpg", ".jpeg"} else "application/octet-stream")

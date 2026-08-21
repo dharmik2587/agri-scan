@@ -65,9 +65,10 @@ logger = logging.getLogger("agriscan")
 logging.basicConfig(level=logging.INFO, format="%(asctime)s - %(name)s - %(levelname)s - %(message)s")
 
 # MongoDB
-mongo_url = os.environ["MONGO_URL"]
+mongo_url = os.environ.get("MONGO_URL") or "mongodb://localhost:27017"
+db_name = os.environ.get("DB_NAME") or "agriscan"
 client = AsyncIOMotorClient(mongo_url)
-db = client[os.environ["DB_NAME"]]
+db = client[db_name]
 
 app = FastAPI(title="AgriScan API")
 api = APIRouter(prefix="/api")

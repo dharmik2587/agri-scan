@@ -36,9 +36,13 @@ export default function Login() {
   };
 
   const google = () => {
-    // REMINDER: DO NOT HARDCODE THE URL, OR ADD ANY FALLBACKS OR REDIRECT URLS, THIS BREAKS THE AUTH
+    const googleAuthUrl = process.env.REACT_APP_GOOGLE_AUTH_URL;
+    if (!googleAuthUrl) {
+      toast.info("Google sign-in is not configured. You can still sign in with email.");
+      return;
+    }
     const redirectUrl = window.location.origin + "/auth/callback";
-    window.location.href = `https://auth.emergentagent.com/?redirect=${encodeURIComponent(redirectUrl)}`;
+    window.location.href = `${googleAuthUrl}?redirect=${encodeURIComponent(redirectUrl)}`;
   };
 
   return (
